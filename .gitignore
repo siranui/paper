@@ -1,0 +1,6 @@
+target/*
+project/target/*
+project/*
+.*.swp
+*.txt
+*.txt.png
