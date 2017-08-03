@@ -1,54 +1,13 @@
-package font_GLO
+package fontGLO
 
 import pll._
 import breeze.linalg._
+import scala.language.postfixOps
 
 class font_batch_GLO(var LapDir: Int = 8) extends batchNet {// {{{
 
-  //
-  // case class Pad(channel: Int, width: Int, ud: String = "down") extends Layer{
-  //
-  // case class Convolution(
-  //   input_width: Int,
-  //   filter_width: Int,
-  //   filter_set: Int = 1,
-  //   channel: Int = 1,
-  //   stride: Int = 1,
-  //   distr: String = "Gaussian",
-  //   SD: Double = 1d,
-  //   update_method: String = "SGD",
-  //   lr: Double = 0.01,
-  // ) extends Layer {
-  // out_width = (math.floor((input_width - filter_width) / stride) + 1).toInt
-  //class BatchNorm(ch:Int = 1, dim: Int, update_method: String = "SGD", lr: Double = 0.01) extends Layer {
-
-  //// 100(1*10*10) -> 25*2*2 -> 10*4*4 -> 5*8*8 -> 3*16*16 -> 1*32*32
-  // val pad = 1//3
-  // val fil_w = 2//4
-  // val stride = 1//2
-  // val up = "Adam"
-  // val lr = 0d
-  // layers =
-  //   (new Pad(25,pad,"up")) ::
-  //   (new Convolution(2*(pad+1)+pad,fil_w,10,25,stride,"He",1d,up,lr)) ::
-  //   // (new BatchNorm(10,4*4,up,lr)) ::
-  //   (new LeakyReLU(0.01)) ::
-  //   (new Pad(10,pad,"up")) ::
-  //   (new Convolution(4*(pad+1)+pad,fil_w,5,10,stride,"He",1d,up,lr)) ::
-  //   // (new BatchNorm(5,8*8,up,lr)) ::
-  //   (new LeakyReLU(0.01)) ::
-  //   (new Pad(5,pad,"up")) ::
-  //   (new Convolution(8*(pad+1)+pad,fil_w,3,5,stride,"He",1d,up,lr)) ::
-  //   // (new BatchNorm(3,16*16,up,lr)) ::
-  //   (new LeakyReLU(0.01)) ::
-  //   (new Pad(3,pad,"up")) ::
-  //   (new Convolution(16*(pad+1)+pad,fil_w,1,3,stride,"He",1d,up,lr)) ::
-  //   // (new BatchNorm(1,32*32,up,lr)) ::
-  //   (new LeakyReLU(0.01)) ::
-  //   layers
-
   // 100(1*10*10) -> 10*4*4 -> 5*8*8 -> 3*16*16 -> 1*32*32
-  val pad = 1
+/*  val pad = 1
   val fil_w = 2
   val stride = 1
   val up = "Adam"
@@ -67,7 +26,7 @@ class font_batch_GLO(var LapDir: Int = 8) extends batchNet {// {{{
     (new Convolution(16*(pad+1)+pad,fil_w,1,3,stride,"He",1d,up,lr)) ::
     (new LeakyReLU(0.01)) ::
     layers
-
+ */
   val Lap = Convolution(32,3,1,1,1,"",1d,"",1d)
 
   val l = LapDir match {
@@ -109,37 +68,78 @@ class font_batch_GLO(var LapDir: Int = 8) extends batchNet {// {{{
 }// }}}
 
 object font_batch_GLO {
+
   def main(args: Array[String]){
     val rand = new util.Random(0)
 
     // parameters
-    val zdim = 100
-    val ds = 25
-    val epoch = 5000
-    val batch = 5
-    // Loss(L2 or Lap)
-    // LapDir(4 or 8)
-    // doShuffle(true or False)
+    var zdim = 100
+    var ds = 25
+    var epoch = 100
+    var batch = 5
+    var pad = 1 //3
+    var fil_w = 2 //4
+    var stride = 1 //2
+    var up = "Adam"
+    var lr = 0d
+    var Loss = "Laplacian"
+    var LapDir = 8
+    var doShuffle = true
     // doSave
     // saveTime
 
+    var i = 0
+    while(i < args.size){
+      args(i) match {
+        case "-z" | "--z-dimension" => { zdim = args(i+1).toInt; i+=2 }
+        case "-d" | "--data-size" => { ds = args(i+1).toInt; i+=2 }
+        case "-e" | "--epoch" => { epoch = args(i+1).toInt; i+=2 }
+        case "-b" | "--batch-size" => { batch = args(i+1).toInt; i+=2 }
+        case "-L" | "--loss-function" => { Loss = args(i+1); i+=2 }
+        case        "--laplacian-filter-dir" => { LapDir = args(i+1).toInt; i+=2 }
+        case "-p" | "--pad" => { pad = args(i+1).toInt; i+=2 }
+        case "-f" | "--filter-width" => { fil_w = args(i+1).toInt; i+=2 }
+        case "-s" | "--stride" => { stride = args(i+1).toInt; i+=2 }
+        case "-u" | "--update-method" => { up = args(i+1); i+=2 }
+        case "-l" | "--learning-rate" => { lr = args(i+1).toDouble; i+=2 }
+        case "--do-shuffle" => { doShuffle = args(i+1).toBoolean; i+=2 }
+        case _ => { println(s"unknown option:${args(i)}"); i+=1 }
+      }
+    }
+
     val start_time = (scala.sys.process.Process("date +%y%m%d-%H%M%S") !!).init
-    val res_path = s"src/main/scala/fontGLO/results/${start_time}"
-    val weights_path = s"src/main/scala/fontGLO/weights/${start_time}"
+    val res_path = s"src/main/scala/fontGLO/results/${start_time}${args.mkString("-")}"
+    val weights_path = s"src/main/scala/fontGLO/weights/${start_time}${args.mkString("-")}"
     val mkdir = scala.sys.process.Process(s"mkdir -p ${res_path} ${weights_path}").run
     mkdir.exitValue()
 
     var Z = Array.ofDim[DenseVector[Double]](ds)
-    Z = Z.map(dv => DenseVector.fill(zdim){rand.nextGaussian})
-    val train_d = read("/home/yuya/fonts/tmp/AGENCYB/AGENCYB-d.txt", ds)
+    Z = Z.map(dv => DenseVector.fill(zdim){rand.nextGaussian / math.sqrt(ds)})
+    val train_d = read("data/fonts/font-all-d.txt", ds)
 
-
-    val g = new font_batch_GLO(LapDir=8)
+    val g = new font_batch_GLO(LapDir)
+    g.add(new Pad(1, 1, "down"))
+      .add(new Convolution(12, 3, 10, 1, 3, "He", 1d, up, lr))
+      //.add(new BatchNorm(10, 4*4))
+      .add(new ReLU())
+      .add(new Pad(10,pad,"up"))
+      .add(new Convolution(4*(pad+1)+pad,fil_w,5,10,stride,"He",1d,up,lr))
+      //.add(new BatchNorm(5, 8*8))
+      .add(new ReLU())
+      .add(new Pad(5,pad,"up"))
+      .add(new Convolution(8*(pad+1)+pad,fil_w,3,5,stride,"He",1d,up,lr))
+      //.add(new BatchNorm(3, 16*16))
+      .add(new ReLU())
+      .add(new Pad(3,pad,"up"))
+      .add(new Convolution(16*(pad+1)+pad,fil_w,1,3,stride,"He",1d,up,lr))
+      .add(new Tanh())
 
     // training
     for(e <- 0 until epoch){
       var E = 0d
-      var unusedIdx = rand.shuffle(List.range(0,ds))
+      var unusedIdx =
+        if(doShuffle) rand.shuffle(List.range(0,ds))
+        else List.range(0,ds)
 
       while(unusedIdx.size != 0){
         val batchMask = unusedIdx take batch
@@ -148,14 +148,23 @@ object font_batch_GLO {
         val xs = (for(idx <- batchMask) yield { Z(idx) }).toArray
         val ts = (for(idx <- batchMask) yield { train_d(idx) }).toArray
         val ys = g.predict(xs)
-        E += g.calc_Lap_loss(ys,ts)
-        val d = g.calc_Lap_grad(ys,ts)
+        var d = Array[DenseVector[Double]]()
+        Loss match {
+          case "Laplacian" | "laplacian" | "Lap" | "lap" => {
+            E += g.calc_Lap_loss(ys,ts)
+            d = g.calc_Lap_grad(ys,ts)
+          }
+          case "L2" | _ => {
+            E += g.calc_L2(ys,ts)
+            d = g.calc_L2_grad(ys,ts)
+          }
+        }
         g.update(d)
       }
 
       // output
       if(e==0 || e%(epoch/10) == 0 || e == epoch - 1){
-        val filename = s"batch_font_GLO_ds${ds}_epoch${e}of${epoch}_batch${batch}_pad${g.pad}_stride${g.stride}.txt"
+        val filename = s"batch_font_GLO_ds${ds}_epoch${e}of${epoch}_batch${batch}_pad${pad}_stride${stride}.txt"
 
         var ys = List[DenseVector[Int]]()
         for(z <- Z){
@@ -180,7 +189,7 @@ object font_batch_GLO {
       println(s"$e, $E")
     }
 
-
+    println(args.toList)
   }
 
   def read(fn: String, ds: Int = 100): Array[DenseVector[Double]] = { // {{{

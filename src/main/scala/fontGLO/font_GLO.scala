@@ -9,7 +9,7 @@ class font_GLO extends Network {// {{{
   //
   // case class Pad(channel: Int, width: Int, ud: String = "down") extends Layer{
   //
-  // case class sConv(
+  // case class Convolution(
   //   input_width: Int,
   //   filter_width: Int,
   //   filter_set: Int = 1,
@@ -33,21 +33,21 @@ class font_GLO extends Network {// {{{
 
   layers =
     (new Pad(25,pad,"up")) ::
-    (new sConv(2*(pad+1)+pad,fil_w,10,25,stride,"He",1d,"Adam",lr)) ::
+    (new Convolution(2*(pad+1)+pad,fil_w,10,25,stride,"He",1d,"Adam",lr)) ::
     (new LeakyReLU(0.01)) ::
     (new Pad(10,pad,"up")) ::
-    (new sConv(4*(pad+1)+pad,fil_w,5,10,stride,"He",1d,"Adam",lr)) ::
+    (new Convolution(4*(pad+1)+pad,fil_w,5,10,stride,"He",1d,"Adam",lr)) ::
     (new LeakyReLU(0.01)) ::
     (new Pad(5,pad,"up")) ::
-    (new sConv(8*(pad+1)+pad,fil_w,3,5,stride,"He",1d,"Adam",lr)) ::
+    (new Convolution(8*(pad+1)+pad,fil_w,3,5,stride,"He",1d,"Adam",lr)) ::
     (new LeakyReLU(0.01)) ::
     (new Pad(3,pad,"up")) ::
-    (new sConv(16*(pad+1)+pad,fil_w,1,3,stride,"He",1d,"Adam",lr)) ::
+    (new Convolution(16*(pad+1)+pad,fil_w,1,3,stride,"He",1d,"Adam",lr)) ::
     (new LeakyReLU(0.01)) ::
     layers
 
 
-  val Lap = sConv(32,3,1,1,1,"",1d,"",1d)
+  val Lap = Convolution(32,3,1,1,1,"",1d,"",1d)
   val l = DenseVector[Double](
     1, 1, 1,
     1,-8, 1,
