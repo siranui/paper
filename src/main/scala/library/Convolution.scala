@@ -3,15 +3,15 @@ package pll
 import breeze.linalg._
 
 case class Convolution(
-  input_width: Int,
-  filter_width: Int,
-  filter_set: Int = 1,
-  channel: Int = 1,
-  stride: Int = 1,
-  distr: String = "Gaussian",
-  SD: Double = 1d,
-  update_method: String = "SGD",
-  lr: Double = 0.01
+  val input_width: Int,
+  val filter_width: Int,
+  val filter_set: Int = 1,
+  val channel: Int = 1,
+  val stride: Int = 1,
+  val distr: String = "Gaussian",
+  val SD: Double = 1d,
+  val update_method: String = "SGD",
+  val lr: Double = 0.01
 ) extends Layer {
 
   assert(stride >= 1)

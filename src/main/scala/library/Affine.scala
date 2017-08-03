@@ -1,7 +1,7 @@
 package pll
 import breeze.linalg._
 
-class Affine(xn:Int,yn:Int,bumpu:String,s:Double,koshin:String,a:Double) extends Layer{
+class Affine(val xn:Int,val yn:Int,val bumpu:String,val s:Double,val koshin:String,val a:Double) extends Layer{
   var opt = Opt.create(koshin,a)
   var w = DenseMatrix.zeros[Double](yn,xn)
   var b = DenseVector.zeros[Double](yn)
