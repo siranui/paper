@@ -17,6 +17,8 @@ class Sigmoid() extends Layer{
   }
   def save(fn:String){
   }
+  def load(fn:String){
+  }
   def load(data: List[String]) = {
     data
   }

@@ -218,6 +218,10 @@ class LSTMorg(val xn:Int,val hn:Int,val dist:String,var n:Double,val u:String,va
 
 
   }
+  def load(filename:String){
+
+
+  }
   def load(data: List[String]) = {
     data
   }

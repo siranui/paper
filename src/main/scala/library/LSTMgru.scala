@@ -156,6 +156,9 @@ class GRU(val xn:Int,val hn:Int,val dist:String,var n:Double,val u:String,val a:
   def save(filename:String){
 
   }
+  def load(filename:String){
+
+  }
   def load(data: List[String]) = {
     data
   }

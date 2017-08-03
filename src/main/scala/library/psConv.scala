@@ -133,6 +133,21 @@ case class psConv(
 
     pw.close()
   }
+  def load(fn: String): Unit = {
+    val str = io.Source.fromFile(fn).getLines.map(_.split(",").map(_.toDouble)).toArray
+    // val flst = data(0).split(",").map(_.toDouble)
+    // val blst = data(1).split(",").map(_.toDouble)
+
+    for(fs <- F.indices; ch <- F(fs).indices; v <- 0 until F(fs)(ch).size){
+      F(fs)(ch)(v) = str(0)(fs*F(fs).size + ch*F(fs)(ch).size + v)
+      // F(fs)(ch)(v) = flst(fs*F(fs).size + ch*F(fs)(ch).size + v)
+    }
+
+    for(fs <- B.indices; v <- F(fs).indices){
+      B(fs)(v) = str(1)(fs*B(fs).size + v)
+      // B(fs)(v) = blst(fs*B(fs).size + v)
+    }
+  }
   def load(data: List[String] /* fn:String */): List[String]/*Unit*/ = {
     // val str = io.Source.fromFile(fn).getLines.map(_.split(",").map(_.toDouble)).toArray
     val flst = data(0).split(",").map(_.toDouble)

@@ -30,6 +30,7 @@ case class Pad(channel: Int, width: Int, ud: String = "down") extends Layer{
   def update() {}
   def reset() { xs = Nil }
   def save(filename: String) {}
+  def load(filename: String) {}
   def load(data: List[String]) : List[String] = {data}
 
 

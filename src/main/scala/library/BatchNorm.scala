@@ -63,5 +63,6 @@ class BatchNorm(ch:Int = 1, dim: Int, update_method: String = "SGD", lr: Double 
   def forward(x: DenseVector[Double]): DenseVector[Double] = x
   def backward(d: DenseVector[Double]): DenseVector[Double] = d
   def save(filename: String) {}
+  def load(filename: String) {}
   def load(data: List[String]) = {data}
 }

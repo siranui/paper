@@ -35,5 +35,6 @@ class Dropout(var dr: Double) extends Layer {
   def update() {}
   def reset() {masks = Nil}
   def save(filename: String) {}
+  def load(filename: String) {}
   def load(data: List[String]) = { data }
 }

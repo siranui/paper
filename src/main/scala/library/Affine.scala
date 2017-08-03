@@ -74,6 +74,17 @@ class Affine(val xn:Int,val yn:Int,val bumpu:String,val s:Double,val koshin:Stri
     pw.write("\n")
     pw.close()
   }
+  def load(fn: String) : Unit = {
+    val str = io.Source.fromFile(fn).getLines.toArray.map(_.split(",").map(_.toDouble))
+    for(i <- 0 until w.rows){
+      for(j <- 0 until w.cols){
+        w(i,j) = str(0)(w.cols*i+j)
+      }
+    }
+    for(i <- 0 until b.size){
+      b(i) = str(1)(i)
+    }
+  }
   def load(data: List[String] /* fn: String */) : List[String] /* Unit */ = {
     // val str = io.Source.fromFile(fn).getLines.toArray.map(_.split(",").map(_.toDouble))
     // for(i <- 0 until w.rows){

@@ -194,6 +194,7 @@ class LSTMfi(val xn:Int,val hn:Int,val dist:String,val n:Double,val u:String,val
 
 
   }
+  def load(filename: String) { }
   def load(data: List[String]) = {
     data
   }

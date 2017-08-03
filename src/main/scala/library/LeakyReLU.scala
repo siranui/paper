@@ -23,6 +23,7 @@ case class LeakyReLU(alpha: Double = 0.02) extends Layer {
     this.mask = None
   }
   def save(filename: String) {}
+  def load(filename: String) {}
   def load(data: List[String]) = { data }
   override def duplicate()={
     new LeakyReLU(alpha)

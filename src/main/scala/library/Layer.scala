@@ -11,6 +11,7 @@ trait Layer {
   def reset() : Unit
   def duplicate(): Layer = { this }
   def save(filename: String) : Unit
+  def load(filename: String) : Unit
   def load(data: List[String]) : List[String]
 
   val rand = new util.Random(0)
