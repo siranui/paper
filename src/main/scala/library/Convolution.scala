@@ -14,7 +14,7 @@ case class Convolution(
   val lr: Double = 0.01
 ) extends Layer {
 
-  assert(stride >= 1)
+  assert(stride >= 1,"stride must 1 or over.")
 
   val opt_filter = Opt.create(update_method,lr)
   val opt_bias = Opt.create(update_method,lr)
@@ -86,7 +86,7 @@ case class Convolution(
     val Ws = this.Ws.get
     val dx: DenseVector[Double] = (for { fs <- 0 until filter_set } yield {
       (for { ch <- 0 until channel } yield {
-        val tmp = (dmap(fs).t * Ws(fs)(ch)).t // DenseVector[Double]
+        val tmp: DenseVector[Double] = (dmap(fs).t * Ws(fs)(ch)).t // DenseVector[Double]
         val wid = math.sqrt(tmp.size).toInt
         val tmp2 = reshape(tmp.t, wid, wid)
         val tmp3 = tmp2
@@ -142,18 +142,15 @@ case class Convolution(
     }
   }
 
-  override def load(data: List[String] /* fn:String */): List[String]/*Unit*/ = {
-    // val str = io.Source.fromFile(fn).getLines.map(_.split(",").map(_.toDouble)).toArray
+  override def load(data: List[String]): List[String] = {
     val flst = data(0).split(",").map(_.toDouble)
     val blst = data(1).split(",").map(_.toDouble)
 
     for(fs <- F.indices; ch <- F(fs).indices; v <- 0 until F(fs)(ch).size){
-      // F(fs)(ch)(v) = str(0)(fs*F(fs).size + ch*F(fs)(ch).size + v)
       F(fs)(ch)(v) = flst(fs*F(fs).size + ch*F(fs)(ch).size + v)
     }
 
     for(fs <- B.indices; v <- F(fs).indices){
-      // B(fs)(v) = str(1)(fs*B(fs).size + v)
       B(fs)(v) = blst(fs*B(fs).size + v)
     }
 
