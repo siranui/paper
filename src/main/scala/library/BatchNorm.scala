@@ -4,7 +4,7 @@ import breeze.linalg._
 class BatchNorm(ch:Int = 1, dim: Int, update_method: String = "SGD", lr: Double = 0.01) extends Layer {
   var opt = Opt.create(update_method,lr)
 
-  val eps = 1e-5
+  val eps = 1e-8
 
   var gamma = DenseVector.ones[Double](ch*dim)
   var beta = DenseVector.zeros[Double](ch*dim)
@@ -32,7 +32,7 @@ class BatchNorm(ch:Int = 1, dim: Int, update_method: String = "SGD", lr: Double 
 
   override def backwards(d: Array[DenseVector[Double]]) = {
     dbeta += d.reduce(_+_)
-    dgamma += (xn zip d).map(i => i._1 dot i._2).reduce(_+_)
+    dgamma += (xn zip d).map(i => i._1 *:* i._2).reduce(_+_)
     val dxn = d.map(_ *:* gamma)
     var dxc = dxn.map(_ /:/ std)
     val dstd = - (dxn zip xc).map(i => (i._1 *:* i._2) /:/ (std *:* std)).reduce(_+_)

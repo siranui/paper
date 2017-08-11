@@ -86,6 +86,7 @@ object font_batch_GLO {
     var LapDir = 8
     var doShuffle = true
     var doSave = true
+    var doBatchNorm = true
     // saveTime
 
     var i = 0
@@ -95,6 +96,7 @@ object font_batch_GLO {
         case "-d" | "--data-size" => { ds = args(i+1).toInt; i+=2 }
         case "-e" | "--epoch" => { epoch = args(i+1).toInt; i+=2 }
         case "-b" | "--batch-size" => { batch = args(i+1).toInt; i+=2 }
+        case        "--do-batch-norm" => { doBatchNorm = args(i+1).toBoolean; i+=2 }
         case "-L" | "--loss-function" => { Loss = args(i+1); i+=2 }
         case        "--laplacian-filter-dir" => { LapDir = args(i+1).toInt; i+=2 }
         case "-p" | "--pad" => { pad = args(i+1).toInt; i+=2 }
@@ -121,21 +123,35 @@ object font_batch_GLO {
     val train_d = read("data/fonts/font-all-d.txt", ds)
 
     val g = new font_batch_GLO(LapDir)
+// make network {{{
     g.add(new Pad(1, 1, "down"))
       .add(new Convolution(12, 3, 10, 1, 3, "He", 1d, up, lr))
-      .add(new BatchNorm(10, 4*4))
-      .add(new ReLU())
+
+    if(doBatchNorm){
+      g.add(new BatchNorm(10, 4*4))
+    }
+
+    g.add(new ReLU())
       .add(new Pad(10,pad,"up"))
       .add(new Convolution(4*(pad+1)+pad,fil_w,5,10,stride,"He",1d,up,lr))
-      .add(new BatchNorm(5, 8*8))
-      .add(new ReLU())
+
+    if(doBatchNorm){
+      g.add(new BatchNorm(5, 8*8))
+    }
+
+    g.add(new ReLU())
       .add(new Pad(5,pad,"up"))
       .add(new Convolution(8*(pad+1)+pad,fil_w,3,5,stride,"He",1d,up,lr))
-      .add(new BatchNorm(3, 16*16))
-      .add(new ReLU())
+
+    if(doBatchNorm){
+      g.add(new BatchNorm(3, 16*16))
+    }
+
+    g.add(new ReLU())
       .add(new Pad(3,pad,"up"))
       .add(new Convolution(16*(pad+1)+pad,fil_w,1,3,stride,"He",1d,up,lr))
       .add(new Tanh())
+// }}}
 
     // training
     for(e <- 0 until epoch){
