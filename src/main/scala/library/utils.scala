@@ -3,7 +3,7 @@ package pll
 import breeze.linalg._
 
 object utils {
-  
+
   val rand = new util.Random(0)
 
   def Xavier(row: Int, col: Int, node: Int) : DenseMatrix[Double] = {
