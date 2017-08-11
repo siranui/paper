@@ -81,11 +81,11 @@ object font_batch_GLO {
     var fil_w = 2 //4
     var stride = 1 //2
     var up = "Adam"
-    var lr = 0d
+    var lr = 0.0002
     var Loss = "Laplacian"
     var LapDir = 8
     var doShuffle = true
-    // doSave
+    var doSave = true
     // saveTime
 
     var i = 0
@@ -103,6 +103,7 @@ object font_batch_GLO {
         case "-u" | "--update-method" => { up = args(i+1); i+=2 }
         case "-l" | "--learning-rate" => { lr = args(i+1).toDouble; i+=2 }
         case "--do-shuffle" => { doShuffle = args(i+1).toBoolean; i+=2 }
+        case "--do-save" => { doSave = args(i+1).toBoolean; i+=2 }
         case _ => { println(s"unknown option:${args(i)}"); i+=1 }
       }
     }
@@ -110,8 +111,10 @@ object font_batch_GLO {
     val start_time = (scala.sys.process.Process("date +%y%m%d-%H%M%S") !!).init
     val res_path = s"src/main/scala/fontGLO/results/${start_time}${args.mkString("-")}"
     val weights_path = s"src/main/scala/fontGLO/weights/${start_time}${args.mkString("-")}"
-    val mkdir = scala.sys.process.Process(s"mkdir -p ${res_path} ${weights_path}").run
-    mkdir.exitValue()
+    if(doSave){
+      val mkdir = scala.sys.process.Process(s"mkdir -p ${res_path} ${weights_path}").run
+      mkdir.exitValue()
+    }
 
     var Z = Array.ofDim[DenseVector[Double]](ds)
     Z = Z.map(dv => DenseVector.fill(zdim){rand.nextGaussian / math.sqrt(ds)})
@@ -120,15 +123,15 @@ object font_batch_GLO {
     val g = new font_batch_GLO(LapDir)
     g.add(new Pad(1, 1, "down"))
       .add(new Convolution(12, 3, 10, 1, 3, "He", 1d, up, lr))
-      //.add(new BatchNorm(10, 4*4))
+      .add(new BatchNorm(10, 4*4))
       .add(new ReLU())
       .add(new Pad(10,pad,"up"))
       .add(new Convolution(4*(pad+1)+pad,fil_w,5,10,stride,"He",1d,up,lr))
-      //.add(new BatchNorm(5, 8*8))
+      .add(new BatchNorm(5, 8*8))
       .add(new ReLU())
       .add(new Pad(5,pad,"up"))
       .add(new Convolution(8*(pad+1)+pad,fil_w,3,5,stride,"He",1d,up,lr))
-      //.add(new BatchNorm(3, 16*16))
+      .add(new BatchNorm(3, 16*16))
       .add(new ReLU())
       .add(new Pad(3,pad,"up"))
       .add(new Convolution(16*(pad+1)+pad,fil_w,1,3,stride,"He",1d,up,lr))
@@ -162,8 +165,8 @@ object font_batch_GLO {
         g.update(d)
       }
 
-      // output
-      if(e==0 || e%(epoch/10) == 0 || e == epoch - 1){
+      // save
+      if(doSave && (e==0 || e%(epoch/10) == 0 || e == epoch - 1)){
         val filename = s"batch_font_GLO_ds${ds}_epoch${e}of${epoch}_batch${batch}_pad${pad}_stride${stride}.txt"
 
         var ys = List[DenseVector[Int]]()
@@ -186,6 +189,7 @@ object font_batch_GLO {
         }
       }
 
+      // output Error
       println(s"$e, $E")
     }
 

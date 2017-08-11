@@ -25,7 +25,7 @@ class BatchNorm(ch:Int = 1, dim: Int, update_method: String = "SGD", lr: Double 
     val mu = B.reduce(_+_) /:/ batch_size
     xc = B.map(_ - mu)
     sig2 = xc.map(i => i *:* i).reduce(_+_) /:/ batch_size
-    std = breeze.numerics.log(sig2 +:+ eps)
+    std = (sig2 +:+ eps).map(math.sqrt)
     xn = xc.map(_ /:/ std)
     xn.map(x => gamma *:* x + beta)
   }
@@ -33,11 +33,11 @@ class BatchNorm(ch:Int = 1, dim: Int, update_method: String = "SGD", lr: Double 
   override def backwards(d: Array[DenseVector[Double]]) = {
     dbeta += d.reduce(_+_)
     dgamma += (xn zip d).map(i => i._1 dot i._2).reduce(_+_)
-    val dxn = d.map(_ dot gamma)
+    val dxn = d.map(_ *:* gamma)
     var dxc = dxn.map(_ /:/ std)
     val dstd = - (dxn zip xc).map(i => (i._1 *:* i._2) /:/ (std *:* std)).reduce(_+_)
     val dsig2 = 0.5 *:* dstd /:/ std
-    dxc = (dxc zip xc.map(_ *:* (2d / batch_size) *:* dsig2)).map(i => i._1 + i._2)
+    dxc = (dxc zip xc.map(_ *:* 2d *:* dsig2 /:/ batch_size)).map(i => i._1 + i._2)
     val dmu = dxc.reduce(_+_)
     val dx = dxc.map(i => (i - dmu) / batch_size)
     dx
