@@ -9,7 +9,7 @@ case class Convolution(
   val channel: Int = 1,
   val stride: Int = 1,
   val distr: String = "Gaussian",
-  val SD: Double = 1d,
+  val SD: Double = 0.1,
   val update_method: String = "SGD",
   val lr: Double = 0.01
 ) extends Layer {
@@ -19,7 +19,7 @@ case class Convolution(
   val opt_filter = Opt.create(update_method,lr)
   val opt_bias = Opt.create(update_method,lr)
 
-  var xs: Option[List[Array[DenseVector[Double]]]] = None //チャネルごとにパディングした後の入力を格納
+  var xs: Option[List[Array[DenseVector[Double]]]] = None //チャネルごとの入力を格納
   var Ws: Option[Array[Array[DenseMatrix[Double]]]] = None
 
   val out_width = (math.floor((input_width - filter_width) / stride) + 1).toInt
@@ -39,7 +39,7 @@ case class Convolution(
 
   def forward(x: DenseVector[Double]): DenseVector[Double] = {
     val xs : Array[DenseVector[Double]] = divideIntoN(x, N = channel)
-    this.xs = Some(xs :: this.xs.getOrElse(Nil)) //パディングした後の入力を保持
+    this.xs = Some(xs :: this.xs.getOrElse(Nil)) //入力を保持
 
 
     val Ws = Array.ofDim[DenseMatrix[Double]](filter_set,channel)
@@ -86,11 +86,8 @@ case class Convolution(
     val Ws = this.Ws.get
     val dx: DenseVector[Double] = (for { fs <- 0 until filter_set } yield {
       (for { ch <- 0 until channel } yield {
-        val tmp: DenseVector[Double] = (dmap(fs).t * Ws(fs)(ch)).t // DenseVector[Double]
-        val wid = math.sqrt(tmp.size).toInt
-        val tmp2 = reshape(tmp.t, wid, wid)
-        val tmp3 = tmp2
-        tmp3.t.toDenseVector
+        val tmp: DenseVector[Double] = (dmap(fs).t * Ws(fs)(ch)).t
+        reshape(tmp.t, input_width, input_width).t.toDenseVector
       }).reduce(DenseVector.vertcat(_,_))
     }).reduce(_+_)
 
