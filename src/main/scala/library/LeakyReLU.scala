@@ -2,7 +2,7 @@ package pll
 import breeze.linalg._
 
 case class LeakyReLU(alpha: Double = 0.02) extends Layer {
-  var mask: Option[DenseVector[Double]] = None
+  var mask: Option[List[DenseVector[Double]]] = None
 
   def lrelu(x:Double) = {
     if(x >= 0) { x } else { alpha * x }
@@ -10,12 +10,14 @@ case class LeakyReLU(alpha: Double = 0.02) extends Layer {
 
   def forward(x: DenseVector[Double]) = {
     val out = x.map(lrelu)
-    this.mask = Some(out.map(i => if(i >= 0d) 1d else alpha))
+    this.mask = Some(out.map(i => if(i >= 0d) 1d else alpha) :: this.mask.getOrElse(Nil))
     out
   }
 
   def backward(d: DenseVector[Double]) = {
-    this.mask.get *:* d
+    val m = this.mask.get.head
+    this.mask = Some(this.mask.get.tail)
+    m *:* d
   }
 
   def update() {}
@@ -26,6 +28,8 @@ case class LeakyReLU(alpha: Double = 0.02) extends Layer {
   def load(filename: String) {}
   def load(data: List[String]) = { data }
   override def duplicate()={
-    new LeakyReLU(alpha)
+    val dup = new LeakyReLU(alpha)
+    dup.mask = this.mask
+    dup
   }
 }
