@@ -41,4 +41,10 @@ object utils {
   // for convolution
   def out_width(in_w: Int, fil_w: Int, stride: Int) = (math.floor((in_w - fil_w) / stride) + 1).toInt
 
+  def print_excuting_time(proc: => Unit) = {
+    val start = System.currentTimeMillis
+    proc
+    println((System.currentTimeMillis - start)+"msec")
+  }
+
 }
