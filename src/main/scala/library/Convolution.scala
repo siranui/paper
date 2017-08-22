@@ -14,20 +14,25 @@ case class Convolution(
   val lr: Double = 0.01
 ) extends Layer {
 
+  type DVD  = DenseVector[Double]
+  type DMD  = DenseMatrix[Double]
+  type ADVD = Array[DVD]
+  type ADMD = Array[DMD]
+
   assert(stride >= 1,"stride must 1 or over.")
 
   val opt_filter = Opt.create(update_method,lr)
-  val opt_bias = Opt.create(update_method,lr)
+  val opt_bias   = Opt.create(update_method,lr)
 
-  var xs: Option[List[Array[DenseVector[Double]]]] = None //チャネルごとの入力を格納
-  var Ws: Option[Array[Array[DenseMatrix[Double]]]] = None
+  var xs: Option[List[ADVD]]  = None //チャネルごとの入力を格納
+  var Ws: Option[Array[ADMD]] = None
 
   val out_width = (math.floor((input_width - filter_width) / stride) + 1).toInt
 
   // filter
-  var F: Array[Array[DenseVector[Double]]] = filter_init(filter_set, channel, filter_width*filter_width)
+  var F: Array[ADVD] = filter_init(filter_set, channel, filter_width*filter_width)
   // bias
-  var B: Array[DenseVector[Double]] = Array.ofDim[DenseVector[Double]](filter_set)
+  var B: ADVD = Array.ofDim[DVD](filter_set)
           .map(_ => DenseVector.zeros[Double](out_width * out_width))
 
   var dF = F.map(_.map(_ => DenseVector.zeros[Double](filter_width*filter_width)))
@@ -37,12 +42,12 @@ case class Convolution(
   opt_filter.register(F.flatten)
   opt_bias.register(B)
 
-  def forward(x: DenseVector[Double]): DenseVector[Double] = {
-    val xs : Array[DenseVector[Double]] = divideIntoN(x, N = channel)
+  def forward(x: DVD): DVD = {
+    val xs : ADVD = divideIntoN(x, N = channel)
     this.xs = Some(xs :: this.xs.getOrElse(Nil)) //入力を保持
 
 
-    val Ws = Array.ofDim[DenseMatrix[Double]](filter_set,channel)
+    val Ws = Array.ofDim[DMD](filter_set,channel)
 
     val u = for (fs <- 0 until filter_set) yield {
       val m = for (ch <- 0 until channel) yield {
@@ -58,8 +63,8 @@ case class Convolution(
     u.reduceLeft((i, j) => DenseVector.vertcat(i, j)) // convert to 1d
   }
 
-  def backward(d: DenseVector[Double]): DenseVector[Double] = {
-    val dmap: Array[DenseVector[Double]] = divideIntoN(d, N = filter_set)
+  def backward(d: DVD): DVD = {
+    val dmap: ADVD = divideIntoN(d, N = filter_set)
 
     assert(dB.size == dmap.size)
     for(i <- dB.indices) {
@@ -70,9 +75,8 @@ case class Convolution(
     assert(this.xs.nonEmpty)
     val xs = this.xs.get.head
     this.xs = Some(this.xs.get.tail)
-
     // dWs(filter_set, channel)
-    val dWs: Array[Array[DenseMatrix[Double]]] = (for { d <- dmap } yield {
+    val dWs: Array[ADMD] = (for { d <- dmap } yield {
       (for { x <- xs } yield {
         d * x.t
       }).toArray
@@ -84,9 +88,9 @@ case class Convolution(
 
 
     val Ws = this.Ws.get
-    val dx: DenseVector[Double] = (for { fs <- 0 until filter_set } yield {
+    val dx: DVD = (for { fs <- 0 until filter_set } yield {
       (for { ch <- 0 until channel } yield {
-        val tmp: DenseVector[Double] = (dmap(fs).t * Ws(fs)(ch)).t
+        val tmp: DVD = (dmap(fs).t * Ws(fs)(ch)).t
         reshape(tmp.t, input_width, input_width).t.toDenseVector
       }).reduce(DenseVector.vertcat(_,_))
     }).reduce(_+_)
@@ -114,7 +118,7 @@ case class Convolution(
   def save(fn: String): Unit = {
     val fos = new java.io.FileOutputStream(fn,true)
     val osw = new java.io.OutputStreamWriter(fos,"UTF-8")
-    val pw = new java.io.PrintWriter(osw)
+    val pw  = new java.io.PrintWriter(osw)
 
     val flatF = F.map(_.map(_.toArray)).flatten.flatten
     pw.write(flatF.mkString(","))
@@ -157,21 +161,21 @@ case class Convolution(
 // {{{ helper
 
   // xをN等分する
-  def divideIntoN(x: DenseVector[Double], N: Int): Array[DenseVector[Double]] = {
+  def divideIntoN(x: DVD, N: Int): ADVD = {
     val len = x.size / N
     (for (i <- 0 until N) yield {
       x(i * len until (i + 1) * len)
     }).toArray
   }
 
-  def filter_init(M: Int, K: Int, H: Int): Array[Array[DenseVector[Double]]] = {
+  def filter_init(M: Int, K: Int, H: Int): Array[ADVD] = {
     ( for(i <- 0 until M) yield {
       ( for(j <- 0 until K) yield {
         //DenseVector.fill(H){rand.nextDouble}
         distr match {
-          case "Xavier" => Xavier(H, input_width*input_width)
-          case "He" => He(H, input_width*input_width)
-          case "Uniform" => Uniform(H, SD)
+          case "Xavier"       => Xavier(H, input_width*input_width)
+          case "He"           => He(H, input_width*input_width)
+          case "Uniform"      => Uniform(H, SD)
           case "Gaussian" | _ => Gaussian(H,SD)
         }
       } ).toArray
@@ -179,60 +183,61 @@ case class Convolution(
   }
 
   // 入力画像とフィルターは正方形に限定
-  def filter2Weight(filter: DenseVector[Double], input_size: Int, stride: Int): DenseMatrix[Double] = {
-    val w = math.sqrt(input_size).toInt
-    val h = math.sqrt(filter.length).toInt
+  def filter2Weight(filter: DVD, input_size: Int, stride: Int): DMD = {
+    val w: Int     = math.sqrt(input_size).toInt
+    val h: Int     = math.sqrt(filter.length).toInt
     val out_w: Int = (math.floor((w - h) / stride) + 1).toInt
     // println(out_w)
 
     val W = DenseMatrix.zeros[Double](math.pow(out_w, 2).toInt, math.pow(w, 2).toInt)
     // println(s"W.rows = ${W.rows}, W.cols = ${W.cols}")
     for (
-      i <- 0 until out_w; j <- 0 until out_w;
-      p <- 0 until h; q <- 0 until h
+      i <- 0 until out_w;
+      j <- 0 until out_w;
+      p <- 0 until h;
+      q <- 0 until h
     ) {
-        W(i * out_w + j, (i * stride + p) * w + stride * j + q) = filter(p * h + q)
-      }
+      val W_row = i * out_w + j
+      val W_col = (i * stride + p) * w + stride * j + q
+      W(W_row, W_col) = filter(p * h + q)
+    }
     W
   }
 
   /*
    * filters[ch, height*width]
    */
-  def filter2Weight(filters: Array[DenseVector[Double]], input_size: Int, stride: Int = 1): DenseMatrix[Double] = {
+  def filter2Weight(filters: ADVD, input_size: Int, stride: Int = 1): DMD = {
     val Ws = for(i <- filters) yield {
       filter2Weight(i, input_size, stride)
     }
     Ws.reduceLeft(DenseMatrix.horzcat(_,_))
   }
 
-  def Weight2filter(dmat: DenseMatrix[Double], filter_size: Int, stride: Int = 1): DenseVector[Double] = {
-    val h = math.sqrt(filter_size).toInt
+  def Weight2filter(dmat: DMD, filter_size: Int, stride: Int = 1): DVD = {
+    val h     = math.sqrt(filter_size).toInt
     val out_w = math.sqrt(dmat.rows).toInt
-    val w = (out_w - 1) * stride + h
+    val w     = (out_w - 1) * stride + h
 
     val Filter = DenseVector.zeros[Double](filter_size)
     for (
-      i <- 0 until out_w; j <- 0 until out_w;
-      p <- 0 until h; q <- 0 until h
+      i <- 0 until out_w;
+      j <- 0 until out_w;
+      p <- 0 until h;
+      q <- 0 until h
     ) {
-      Filter(p * h + q) += dmat(i * out_w + j, (i * stride + p) * w + stride * j + q)
-      }
+      val d_row = i * out_w + j
+      val d_col = (i * stride + p) * w + stride * j + q
+      Filter(p * h + q) += dmat(d_row, d_col)
+    }
 
     Filter
   }
 
 
 
-  def copy_F()={
-    val cf = F.map(_.map(_.copy))
-    cf
-  }
-
-  def copy_B()={
-    val cb = B.map(_.copy)
-    cb
-  }
+  def copy_F() = F.map(_.map(_.copy))
+  def copy_B() = B.map(_.copy)
 
   override def duplicate()={
     val dup = new Convolution( input_width, filter_width, filter_set, channel, stride, distr, SD, update_method, lr )
