@@ -110,9 +110,10 @@ object font_batch_GLO {
       }
     }
 
-    val start_time = (scala.sys.process.Process("date +%y%m%d-%H%M%S") !!).init
-    val res_path = s"src/main/scala/fontGLO/results/${start_time}${args.mkString("-")}"
+    val start_time   = (scala.sys.process.Process("date +%y%m%d-%H%M%S") !!).init
+    val res_path     = s"src/main/scala/fontGLO/results/${start_time}${args.mkString("-")}"
     val weights_path = s"src/main/scala/fontGLO/weights/${start_time}${args.mkString("-")}"
+
     if(doSave){
       val mkdir = scala.sys.process.Process(s"mkdir -p ${res_path} ${weights_path}").run
       mkdir.exitValue()
@@ -167,7 +168,7 @@ object font_batch_GLO {
         val xs = (for(idx <- batchMask) yield { Z(idx) }).toArray
         val ts = (for(idx <- batchMask) yield { train_d(idx) }).toArray
         val ys = g.predict(xs)
-        var d = Array[DenseVector[Double]]()
+        var d  = Array[DenseVector[Double]]()
         Loss match {
           case "Laplacian" | "laplacian" | "Lap" | "lap" => {
             E += g.calc_Lap_loss(ys,ts)
