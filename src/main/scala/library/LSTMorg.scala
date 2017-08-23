@@ -1,8 +1,10 @@
 package pll
+
+
 import breeze.linalg._
 import breeze.numerics.{sigmoid, tanh}
 
-class LSTMorg(val xn:Int,val hn:Int,val dist:String,var n:Double,val u:String,val a:Double) extends Layer{
+class LSTMorg(val xn: Int, val hn: Int, val dist: String, var n: Double, val u: String, val a: Double) extends Layer {
 
   var Ft = List[DenseVector[Double]]()
   var It = List[DenseVector[Double]]()
@@ -15,47 +17,47 @@ class LSTMorg(val xn:Int,val hn:Int,val dist:String,var n:Double,val u:String,va
   var Cr = List[DenseVector[Double]]()
   var Hr = List[DenseVector[Double]]()
 
-//  val rand = new util.Random(0)
-  var Wf = DenseMatrix.zeros[Double](hn,xn+hn)
-  var Wi = DenseMatrix.zeros[Double](hn,xn+hn)
-  var Wc = DenseMatrix.zeros[Double](hn,xn+hn)
-  var Wo = DenseMatrix.zeros[Double](hn,xn+hn)
+  //  val rand = new util.Random(0)
+  var Wf = DenseMatrix.zeros[Double](hn, xn + hn)
+  var Wi = DenseMatrix.zeros[Double](hn, xn + hn)
+  var Wc = DenseMatrix.zeros[Double](hn, xn + hn)
+  var Wo = DenseMatrix.zeros[Double](hn, xn + hn)
 
-  if(dist == "Gaussian"){
-    Wf = Gaussian(hn,hn+xn,hn+xn)
-    Wi = Gaussian(hn,hn+xn,hn+xn)
-    Wc = Gaussian(hn,hn+xn,hn+xn)
-    Wo = Gaussian(hn,hn+xn,hn+xn)
-  }else if(dist == "Uniform"){
-    Wf = Uniform(hn,hn+xn,hn+xn)
-    Wi = Uniform(hn,hn+xn,hn+xn)
-    Wc = Uniform(hn,hn+xn,hn+xn)
-    Wo = Uniform(hn,hn+xn,hn+xn)
-  }else if(dist == "Xavier"){
-    Wf = Xavier(hn,hn+xn,hn+xn)
-    Wi = Xavier(hn,hn+xn,hn+xn)
-    Wc = Xavier(hn,hn+xn,hn+xn)
-    Wo = Xavier(hn,hn+xn,hn+xn)
-  }else if(dist == "He"){
-    Wf = He(hn,hn+xn,hn+xn)
-    Wi = He(hn,hn+xn,hn+xn)
-    Wc = He(hn,hn+xn,hn+xn)
-    Wo = He(hn,hn+xn,hn+xn)
+  if (dist == "Gaussian") {
+    Wf = Gaussian(hn, hn + xn, hn + xn)
+    Wi = Gaussian(hn, hn + xn, hn + xn)
+    Wc = Gaussian(hn, hn + xn, hn + xn)
+    Wo = Gaussian(hn, hn + xn, hn + xn)
+  } else if (dist == "Uniform") {
+    Wf = Uniform(hn, hn + xn, hn + xn)
+    Wi = Uniform(hn, hn + xn, hn + xn)
+    Wc = Uniform(hn, hn + xn, hn + xn)
+    Wo = Uniform(hn, hn + xn, hn + xn)
+  } else if (dist == "Xavier") {
+    Wf = Xavier(hn, hn + xn, hn + xn)
+    Wi = Xavier(hn, hn + xn, hn + xn)
+    Wc = Xavier(hn, hn + xn, hn + xn)
+    Wo = Xavier(hn, hn + xn, hn + xn)
+  } else if (dist == "He") {
+    Wf = He(hn, hn + xn, hn + xn)
+    Wi = He(hn, hn + xn, hn + xn)
+    Wc = He(hn, hn + xn, hn + xn)
+    Wo = He(hn, hn + xn, hn + xn)
   }
-      /*
-       var Wf = DenseMatrix.fill(hn, xn + hn) {
-       rand.nextGaussian / math.sqrt(xn + hn)
-       }
-       var Wi = DenseMatrix.fill(hn, xn + hn) {
-       rand.nextGaussian / math.sqrt(xn + hn)
-       }
-       var Wc = DenseMatrix.fill(hn, xn + hn) {
-       rand.nextGaussian / math.sqrt(xn + hn)
-       }
-       var Wo = DenseMatrix.fill(hn, xn + hn) {
-       rand.nextGaussian / math.sqrt(xn + hn)
-       }
-       */
+  /*
+   var Wf = DenseMatrix.fill(hn, xn + hn) {
+   rand.nextGaussian / math.sqrt(xn + hn)
+   }
+   var Wi = DenseMatrix.fill(hn, xn + hn) {
+   rand.nextGaussian / math.sqrt(xn + hn)
+   }
+   var Wc = DenseMatrix.fill(hn, xn + hn) {
+   rand.nextGaussian / math.sqrt(xn + hn)
+   }
+   var Wo = DenseMatrix.fill(hn, xn + hn) {
+   rand.nextGaussian / math.sqrt(xn + hn)
+   }
+   */
   var bf = DenseVector.zeros[Double](hn)
   var bi = DenseVector.zeros[Double](hn)
   var bc = DenseVector.zeros[Double](hn)
@@ -75,9 +77,9 @@ class LSTMorg(val xn:Int,val hn:Int,val dist:String,var n:Double,val u:String,va
   var dN = DenseVector.zeros[Double](hn)
 
 
-  var opt = Opt.create(u,a)
-  opt.register(Array(bf,bi,bc,bo))
-  opt.register(Array(Wf,Wi,Wc,Wo))
+  var opt = Opt.create(u, a)
+  opt.register(Array(bf, bi, bc, bo))
+  opt.register(Array(Wf, Wi, Wc, Wo))
 
   def forward(x: DenseVector[Double]): DenseVector[Double] = {
     z = Hr.size match {
@@ -101,13 +103,13 @@ class LSTMorg(val xn:Int,val hn:Int,val dist:String,var n:Double,val u:String,va
     Hr.head
   }
 
-  def forward(x: DenseVector[Double], H: DenseVector[Double], C: DenseVector[Double]) : DenseVector[Double] ={
+  def forward(x: DenseVector[Double], H: DenseVector[Double], C: DenseVector[Double]): DenseVector[Double] = {
     Hr = H :: Hr
     Cr = C :: Cr
     forward(x)
   }
-  
-  def HRCR()={
+
+  def HRCR(): (DenseVector[Double], DenseVector[Double]) = {
     (Hr.head, Cr.head)
   }
 
@@ -152,40 +154,40 @@ class LSTMorg(val xn:Int,val hn:Int,val dist:String,var n:Double,val u:String,va
     dz(hn until dz.size)
   }
 
-  def backward(dh: DenseVector[Double], N: DenseVector[Double], C: DenseVector[Double]) : DenseVector[Double] = {
+  def backward(dh: DenseVector[Double], N: DenseVector[Double], C: DenseVector[Double]): DenseVector[Double] = {
     dN = N
     dC = C
     backward(dh)
   }
 
-  def DNDC() = {
+  def DNDC(): (DenseVector[Double], DenseVector[Double]) = {
     (dN, dC)
   }
 
 
   def update(): Unit = {
-    val dbs = opt.update(Array(bf,bi,bc,bo),Array(dbf,dbi,dbc,dbo))
+    val dbs = opt.update(Array(bf, bi, bc, bo), Array(dbf, dbi, dbc, dbo))
     bf -= dbs(0)
     bi -= dbs(1)
     bc -= dbc(2)
     bo -= dbo(3)
 
-    val dws = opt.update(Array(Wf,Wi,Wc,Wo),Array(dWf,dWi,dWc,dWo))
+    val dws = opt.update(Array(Wf, Wi, Wc, Wo), Array(dWf, dWi, dWc, dWo))
     Wf -= dws(0)
     Wi -= dws(1)
     Wc -= dws(2)
     Wo -= dws(3)
-/*
-    Wf -= learningRate *:* dWf
-    Wi -= learningRate *:* dWi
-    Wc -= learningRate *:* dWc
-    Wo -= learningRate *:* dWo
+    /*
+        Wf -= learningRate *:* dWf
+        Wi -= learningRate *:* dWi
+        Wc -= learningRate *:* dWc
+        Wo -= learningRate *:* dWo
 
-    bf -= learningRate * dbf
-    bi -= learningRate * dbi
-    bc -= learningRate * dbc
-    bo -= learningRate * dbo
- */
+        bf -= learningRate * dbf
+        bi -= learningRate * dbi
+        bc -= learningRate * dbc
+        bo -= learningRate * dbo
+     */
     reset()
   }
 
@@ -214,15 +216,18 @@ class LSTMorg(val xn:Int,val hn:Int,val dist:String,var n:Double,val u:String,va
     dC = DenseVector.zeros[Double](hn)
     dN = DenseVector.zeros[Double](hn)
   }
-  def save(filename:String){
+
+  def save(filename: String): Unit = {
 
 
   }
-  def load(filename:String){
+
+  def load(filename: String): Unit = {
 
 
   }
-  def load(data: List[String]) = {
+
+  def load(data: List[String]): List[String] = {
     data
   }
 }
