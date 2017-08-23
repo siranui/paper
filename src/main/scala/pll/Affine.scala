@@ -3,7 +3,13 @@ package pll
 
 import breeze.linalg._
 
-class Affine(val xn: Int, val yn: Int, val distr: String, val s: Double, val koshin: String, val a: Double) extends Layer {
+class Affine(
+  val xn: Int,
+  val yn: Int,
+  val distr: String,
+  val s: Double,
+  val koshin: String,
+  val a: Double) extends Layer {
   var opt: Opt = Opt.create(koshin, a)
   var w: DenseMatrix[Double] = DenseMatrix.zeros[Double](yn, xn)
   var b: DenseVector[Double] = DenseVector.zeros[Double](yn)
@@ -92,16 +98,7 @@ class Affine(val xn: Int, val yn: Int, val distr: String, val s: Double, val kos
     }
   }
 
-  def load(data: List[String] /* fn: String */): List[String] /* Unit */ = {
-    // val str = io.Source.fromFile(fn).getLines.toArray.map(_.split(",").map(_.toDouble))
-    // for(i <- 0 until w.rows){
-    //   for(j <- 0 until w.cols){
-    //     w(i,j) = str(0)(w.cols*i+j)
-    //   }
-    // }
-    // for(i <- 0 until b.size){
-    //   b(i) = str(1)(i)
-    // }
+  def load(data: List[String]): List[String] = {
     val ws = data(0).split(",").map(_.toDouble)
     val bs = data(1).split(",").map(_.toDouble)
     for (i <- 0 until w.rows) {

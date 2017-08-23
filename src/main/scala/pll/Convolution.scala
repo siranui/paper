@@ -36,8 +36,8 @@ case class Convolution(
   var B: ADVD = Array.ofDim[DVD](filter_set)
                 .map(_ => DenseVector.zeros[Double](out_width * out_width))
 
-  var dF = F.map(_.map(_ => DenseVector.zeros[Double](filter_width * filter_width)))
-  var dB = B.map(_ => DenseVector.zeros[Double](out_width * out_width))
+  var dF: Array[ADVD] = F.map(_.map(_ => DenseVector.zeros[Double](filter_width * filter_width)))
+  var dB: ADVD = B.map(_ => DenseVector.zeros[Double](out_width * out_width))
 
   //F.map(opt.register(_))
   opt_filter.register(F.flatten)
@@ -255,7 +255,7 @@ case class Convolution(
 object ConvolutionTest {
   def main(args: Array[String]) {
 
-    // ConvolutionLayer(
+    // Convolution(
     //    f: ActivateFunction,
     //    filter_width: Int, filter_set: Int = 1,
     //    channel: Int = 1, stride: Int = 1 )
