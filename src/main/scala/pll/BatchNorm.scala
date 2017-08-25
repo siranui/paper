@@ -1,10 +1,10 @@
 package pll
 import breeze.linalg._
 
-class BatchNorm(ch:Int = 1, dim: Int, update_method: String = "SGD", lr: Double = 0.01) extends Layer {
+class BatchNorm(update_method: String = "SGD", lr: Double = 0.01) extends Layer {
   // 学習対象
-  var gamma = DenseVector.ones[Double](ch*dim)
-  var beta  = DenseVector.zeros[Double](ch*dim)
+  var gamma: DenseVector[Double] = null //DenseVector.ones[Double](ch*dim)
+  var beta: DenseVector[Double]  = null //DenseVector.zeros[Double](ch*dim)
 
   // backward()で使うため、forward()の外で定義している
   var xc  = Array[DenseVector[Double]]()
@@ -12,15 +12,23 @@ class BatchNorm(ch:Int = 1, dim: Int, update_method: String = "SGD", lr: Double 
   var xn  = Array[DenseVector[Double]]()
 
   // 更新量を保持する変数
-  var dgamma = DenseVector.zeros[Double](ch*dim)
-  var dbeta  = DenseVector.zeros[Double](ch*dim)
+  var dgamma: DenseVector[Double] = null //DenseVector.zeros[Double](ch*dim)
+  var dbeta: DenseVector[Double]  = null //DenseVector.zeros[Double](ch*dim)
 
   var opt = Opt.create(update_method,lr)
-  opt.register(Array(gamma,beta))
+  // opt.register(Array(gamma,beta))
 
   val eps = 1e-8
 
   override def forwards(B: Array[DenseVector[Double]]): Array[DenseVector[Double]] = {
+    if(gamma == null){
+      gamma  = DenseVector.ones[Double](B(0).length)
+      beta   = DenseVector.zeros[Double](B(0).length)
+      dgamma = DenseVector.zeros[Double](B(0).length)
+      dbeta  = DenseVector.zeros[Double](B(0).length)
+      opt.register(Array(gamma,beta))
+    }
+
     val batch_size = B.length.toDouble
 
     val mu = B.reduce(_ + _) /:/ batch_size
@@ -62,8 +70,8 @@ class BatchNorm(ch:Int = 1, dim: Int, update_method: String = "SGD", lr: Double 
   }
 
   def reset() {
-    dgamma = DenseVector.zeros[Double](ch*dim)
-    dbeta  = DenseVector.zeros[Double](ch*dim)
+    dgamma = DenseVector.zeros[Double](dgamma.length)
+    dbeta  = DenseVector.zeros[Double](dbeta.length)
     xc     = Array[DenseVector[Double]]()
     std    = DenseVector[Double]()
     xn     = Array[DenseVector[Double]]()
