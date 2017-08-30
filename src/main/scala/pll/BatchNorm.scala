@@ -52,12 +52,16 @@ class BatchNorm(update_method: String = "SGD", lr: Double = 0.01) extends Layer 
 
     val dxn = d.map(_ *:* gamma)
 
-    val dstd = -(dxn zip xc).map(i => (i._1 *:* i._2) /:/ (std *:* std)).reduce(_ + _)
+    val dstd = -(dxn zip xc).map { case (dxn_i, xc_i) =>
+      (dxn_i *:* xc_i) /:/ (std *:* std)
+    }.reduce(_ + _)
     val dsig2 = 0.5 *:* dstd /:/ std
 
     val dxc_1 = dxn.map(_ /:/ std)
     val dxc_2 = xc.map(_ *:* 2d *:* dsig2 /:/ batch_size)
-    val dxc = (dxc_1 zip dxc_2).map(i => i._1 + i._2)
+    val dxc = (dxc_1 zip dxc_2).map { case (dxc_1_i, dxc_2_i) =>
+      dxc_1_i + dxc_2_i
+    }
 
     val dmu = dxc.reduce(_ + _)
 
