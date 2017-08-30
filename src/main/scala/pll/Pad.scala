@@ -17,13 +17,13 @@ case class Pad(channel: Int, width: Int, ud: String = "down") extends Layer {
 
   def forward(x: DenseVector[Double]): DenseVector[Double] = {
     xs = x :: xs
-    val xch = divideIntoN(x, channel)
+    val xch = utils.divideIntoN(x, channel)
     val padded_xch = xch.map(padding(_, width, ud))
     padded_xch.reduceLeft((i, j) => DenseVector.vertcat(i, j)) // convert to 1d
   }
 
   def backward(d: DenseVector[Double]): DenseVector[Double] = {
-    val dch = divideIntoN(d, channel)
+    val dch = utils.divideIntoN(d, channel)
     val unpadded_dch = dch.map(back(_, width, ud))
     unpadded_dch.reduceLeft((i, j) => DenseVector.vertcat(i, j)) // convert to 1d
   }
@@ -106,12 +106,6 @@ case class Pad(channel: Int, width: Int, ud: String = "down") extends Layer {
     unpadded_dmat.t.toDenseVector
   }
 
-  def divideIntoN(x: DenseVector[Double], N: Int): Array[DenseVector[Double]] = {
-    val len = x.size / N
-    (for (i <- 0 until N) yield {
-      x(i * len until (i + 1) * len)
-    }).toArray
-  }
 }
 
 // {{{ PadTest

@@ -60,11 +60,9 @@ object utils {
     (math.floor((in_w - fil_w) / stride) + 1).toInt
   }
 
-  def divideIntoN(x: DenseVector[Double], N: Int): Array[DenseVector[Double]] = {
+  def divideIntoN[T](x: DenseVector[T], N: Int): Array[DenseVector[T]] = {
     val len = x.size / N
-    (for (i <- 0 until N) yield {
-      x(i * len until (i + 1) * len)
-    }).toArray
+    (0 until N).map(i => x(i * len until (i + 1) * len)).toArray
   }
 
   def print_excuting_time(proc: => Unit): Unit = {
