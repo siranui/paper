@@ -18,14 +18,14 @@ case class Pad(channel: Int, width: Int, ud: String = "down") extends Layer {
   def forward(x: DenseVector[Double]): DenseVector[Double] = {
     xs = x :: xs
     val xch = divideIntoN(x, channel)
-    val tmp = xch.map(padding(_, width, ud))
-    tmp.reduceLeft((i, j) => DenseVector.vertcat(i, j)) // convert to 1d
+    val padded_xch = xch.map(padding(_, width, ud))
+    padded_xch.reduceLeft((i, j) => DenseVector.vertcat(i, j)) // convert to 1d
   }
 
   def backward(d: DenseVector[Double]): DenseVector[Double] = {
     val dch = divideIntoN(d, channel)
-    val tmp = dch.map(back(_, width, ud))
-    tmp.reduceLeft((i, j) => DenseVector.vertcat(i, j)) // convert to 1d
+    val unpadded_dch = dch.map(back(_, width, ud))
+    unpadded_dch.reduceLeft((i, j) => DenseVector.vertcat(i, j)) // convert to 1d
   }
 
   def update() {}
@@ -56,11 +56,11 @@ case class Pad(channel: Int, width: Int, ud: String = "down") extends Layer {
   def padding(m: DenseVector[Double], width: Int, method: String): DenseVector[Double] = {
     val w = math.sqrt(m.size).toInt
     val mat = reshape(m, w, w)
-    val tmp = method match {
+
+    method match {
       case "up" | "Up" | "UP" => trans(mat.t, width).t.toDenseVector
       case "down" | "Down" | "DOWN" | _ => around(mat.t, width).t.toDenseVector
     }
-    tmp
   }
 
   def around(m: DenseMatrix[Double], width: Int): DenseMatrix[Double] = {
@@ -70,9 +70,12 @@ case class Pad(channel: Int, width: Int, ud: String = "down") extends Layer {
 
   def trans(m: DenseMatrix[Double], width: Int): DenseMatrix[Double] = {
     assert(m.rows == m.cols, "Rectangle is not support.")
+
     val w = m.rows
     val ww = (width + 1) * w + width
+
     val builder = new CSCMatrix.Builder[Double](rows = ww, cols = ww)
+
     for (i <- width until ww by width + 1; j <- width until ww by width + 1) {
       builder.add(i, j, m(i / (width + 1), j / (width + 1)))
     }
@@ -83,17 +86,24 @@ case class Pad(channel: Int, width: Int, ud: String = "down") extends Layer {
     import math.sqrt
     val dmat = reshape(d, sqrt(d.size).toInt, sqrt(d.size).toInt).t
 
-    val tmp = method match {
+    val unpadded_dmat: DenseMatrix[Double] = method match {
       case "up" | "Up" | "UP" =>
-        val mat = DenseMatrix.zeros[Double]((dmat.rows - width) / (width + 1), (dmat.cols - width) / (width + 1))
-        for (i <- width until dmat.rows - width by width + 1; j <- width until dmat.cols - width by width + 1) {
+        val mat = DenseMatrix.zeros[Double](
+          (dmat.rows - width) / (width + 1),
+          (dmat.cols - width) / (width + 1)
+        )
+
+        for {
+          i <- width until dmat.rows - width by width + 1
+          j <- width until dmat.cols - width by width + 1
+        } {
           mat(i / (width + 1), j / (width + 1)) = dmat(i, j)
         }
         mat
       case "down" | "Down" | "DOWN" | _ =>
         dmat(width until dmat.rows - width, width until dmat.cols - width)
     }
-    tmp.t.toDenseVector
+    unpadded_dmat.t.toDenseVector
   }
 
   def divideIntoN(x: DenseVector[Double], N: Int): Array[DenseVector[Double]] = {
