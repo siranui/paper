@@ -73,7 +73,7 @@ object param {
   var doBatchNorm = true
   var saveTime = 10
 
-  def setParamFromArgs(args: Array[String]) = {
+  def setParamFromArgs(args: Array[String]): Unit = {
     var i = 0
     while (i < args.length) {
       args(i) match {
@@ -132,6 +132,7 @@ object param {
 }
 
 object batch_font_GLO {
+
   import param._
 
   def main(args: Array[String]) {
@@ -161,34 +162,22 @@ object batch_font_GLO {
     // make network
     // 100(1*10*10) -> 10*4*4 -> 5*8*8 -> 3*16*16 -> 1*32*32
     val g = new batch_font_GLO(LapDir)
+
     g.add(new Pad(1, 1, "down"))
     .add(new Convolution(12, 3, 10, 1, 3, "He", 1d, up, lr))
-    if (doBatchNorm) {
-      g.add(new BatchNorm(up))
-    }
-
+    if (doBatchNorm) g.add(new BatchNorm(up))
     g.add(new ReLU())
     .add(new Pad(10, pad, "up"))
     .add(new Convolution(4 * (pad + 1) + pad, fil_w, 5, 10, stride, "He", 1d, up, lr))
-
-    if (doBatchNorm) {
-      g.add(new BatchNorm(up))
-    }
-
+    if (doBatchNorm) g.add(new BatchNorm(up))
     g.add(new ReLU())
     .add(new Pad(5, pad, "up"))
     .add(new Convolution(8 * (pad + 1) + pad, fil_w, 3, 5, stride, "He", 1d, up, lr))
-
-    if (doBatchNorm) {
-      g.add(new BatchNorm(up))
-    }
-
+    if (doBatchNorm) g.add(new BatchNorm(up))
     g.add(new ReLU())
     .add(new Pad(3, pad, "up"))
     .add(new Convolution(16 * (pad + 1) + pad, fil_w, 1, 3, stride, "He", 1d, up, lr))
     .add(new Tanh())
-
-
 
 
     // training
@@ -199,15 +188,11 @@ object batch_font_GLO {
         else List.range(0, data_size)
 
       while (unusedIdx.nonEmpty) {
-        val batchMask = unusedIdx take batch
-        unusedIdx = unusedIdx drop batch
+        val batchMask = unusedIdx.take(batch)
+        unusedIdx = unusedIdx.drop(batch)
 
-        val xs = (for (idx <- batchMask) yield {
-          Z(idx)
-        }).toArray
-        val ts = (for (idx <- batchMask) yield {
-          train_d(idx)
-        }).toArray
+        val xs = batchMask.map(idx => Z(idx)).toArray
+        val ts = batchMask.map(idx => train_d(idx)).toArray
         val ys = g.predict(xs)
 
         var d = Array[DenseVector[Double]]()
@@ -224,7 +209,7 @@ object batch_font_GLO {
       }
 
       // save
-      val saveCondition: Boolean = (e == 0) || (e % (epoch / saveTime) == 0 )|| (e == epoch - 1)
+      val saveCondition: Boolean = (e == 0) || (e % (epoch / saveTime) == 0) || (e == epoch - 1)
       if (doSave && saveCondition) {
         val filename = s"batch_font_GLO_ds${data_size}_epoch${e}of${epoch}_batch${batch}_pad${pad}_stride${stride}.txt"
 
@@ -257,8 +242,8 @@ object batch_font_GLO {
 
   def read(fn: String, ds: Int = 0): Array[DenseVector[Double]] = {
     val f = ds match {
-      case 0 => io.Source.fromFile(fn).getLines.map(_.split (",").map(_.toDouble / 256d).toArray).toArray
-      case _ => io.Source.fromFile(fn).getLines.take(ds).map(_.split (",").map(_.toDouble / 256d).toArray).toArray
+      case 0 => io.Source.fromFile(fn).getLines.map(_.split(",").map(_.toDouble / 256d).toArray).toArray
+      case _ => io.Source.fromFile(fn).getLines.take(ds).map(_.split(",").map(_.toDouble / 256d).toArray).toArray
     }
     val g = f.map(a => DenseVector(a))
     g
@@ -270,6 +255,7 @@ object batch_font_GLO {
     val pw = new java.io.PrintWriter(osw)
 
     for (data <- dataList) {
+      // FIXME: use 'mkString(",")'
       for (i <- 0 until data.size) {
         pw.write(data(i).toString)
         if (i != data.size - 1) {
