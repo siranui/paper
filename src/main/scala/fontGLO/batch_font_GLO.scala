@@ -240,6 +240,12 @@ object batch_font_GLO {
     println(args.toList)
   }
 
+  /** read data from file.
+   *
+   * @param fn filename. (relative path from root)
+   * @param ds read line size from head. if (ds == 0) then read all.
+   * @return read data that divide 256( [0,255] -> [0,1] ).
+   */
   def read(fn: String, ds: Int = 0): Array[DenseVector[Double]] = {
     val f = ds match {
       case 0 => io.Source.fromFile(fn).getLines.map(_.split(",").map(_.toDouble / 256d).toArray).toArray
@@ -249,22 +255,18 @@ object batch_font_GLO {
     g
   }
 
-  def write(fn: String, dataList: List[DenseVector[Int]]) {
+  /** write data to file.
+   *
+   * @param fn filename. (relative path from root)
+   * @param dataList data.
+   */
+  def write(fn: String, dataList: List[DenseVector[Int]]): Unit = {
     val fos = new java.io.FileOutputStream(fn, false) //true: 追記, false: 上書き
     val osw = new java.io.OutputStreamWriter(fos, "UTF-8")
     val pw = new java.io.PrintWriter(osw)
 
     for (data <- dataList) {
-      // TODO: check below method. if 'for expr's results equal this, replace it.
-      // pw.write(data.toArray.mkString(","))
-
-      for (i <- 0 until data.size) {
-        pw.write(data(i).toString)
-        if (i != data.size - 1) {
-          pw.write(",")
-        }
-      }
-
+      pw.write(data.toArray.mkString(","))
       pw.write("\n")
     }
     pw.close()
