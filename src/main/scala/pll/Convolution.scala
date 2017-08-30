@@ -4,15 +4,15 @@ package pll
 import breeze.linalg._
 
 case class Convolution(
-  val input_width: Int,
-  val filter_width: Int,
-  val filter_set: Int = 1,
-  val channel: Int = 1,
-  val stride: Int = 1,
-  val distr: String = "Gaussian",
-  val SD: Double = 0.1,
-  val update_method: String = "SGD",
-  val lr: Double = 0.01
+  input_width: Int,
+  filter_width: Int,
+  filter_set: Int = 1,
+  channel: Int = 1,
+  stride: Int = 1,
+  distr: String = "Gaussian",
+  SD: Double = 0.1,
+  update_method: String = "SGD",
+  lr: Double = 0.01
 ) extends Layer {
 
   type DVD = DenseVector[Double]
@@ -22,13 +22,13 @@ case class Convolution(
 
   assert(stride >= 1, "stride must 1 or over.")
 
-  val opt_filter = Opt.create(update_method, lr)
-  val opt_bias = Opt.create(update_method, lr)
+  val opt_filter: Opt = Opt.create(update_method, lr)
+  val opt_bias: Opt = Opt.create(update_method, lr)
 
   var xs: Option[List[ADVD]] = None //チャネルごとの入力を格納
   var Ws: Option[Array[ADMD]] = None
 
-  val out_width = (math.floor((input_width - filter_width) / stride) + 1).toInt
+  val out_width: Int = (math.floor((input_width - filter_width) / stride) + 1).toInt
 
   // filter
   var F: Array[ADVD] = filter_init(filter_set, channel, filter_width * filter_width)
@@ -44,7 +44,7 @@ case class Convolution(
   opt_bias.register(B)
 
   def forward(x: DVD): DVD = {
-    val xs: ADVD = divideIntoN(x, N = channel)
+    val xs: ADVD = utils.divideIntoN(x, N = channel)
     this.xs = Some(xs :: this.xs.getOrElse(Nil)) //入力を保持
 
 
@@ -65,7 +65,7 @@ case class Convolution(
   }
 
   def backward(d: DVD): DVD = {
-    val dmap: ADVD = divideIntoN(d, N = filter_set)
+    val dmap: ADVD = utils.divideIntoN(d, N = filter_set)
 
     assert(dB.length == dmap.length)
     for (i <- dB.indices) {
@@ -77,11 +77,7 @@ case class Convolution(
     val xs = this.xs.get.head
     this.xs = Some(this.xs.get.tail)
     // dWs(filter_set, channel)
-    val dWs: Array[ADMD] = for {d <- dmap} yield {
-      for {x <- xs} yield {
-        d * x.t
-      }
-    }
+    val dWs: Array[ADMD] = dmap.map(d => xs.map(x => d * x.t))
 
     for {i <- dWs.indices; j <- dWs(i).indices} {
       dF(i)(j) += Weight2filter(dWs(i)(j), filter_width * filter_width, stride)
@@ -101,7 +97,10 @@ case class Convolution(
 
   def update(): Unit = {
     val wf = opt_filter.update(F.flatten, dF.flatten)
-    for (i <- F.indices; j <- F(i).indices) {
+    for {
+      i <- F.indices
+      j <- F(i).indices
+    } {
       F(i)(j) -= wf(i * F(i).length + j)
     }
 
@@ -135,11 +134,20 @@ case class Convolution(
   def load(fn: String) {
     val str = io.Source.fromFile(fn).getLines.map(_.split(",").map(_.toDouble)).toArray
 
-    for (fs <- F.indices; ch <- F(fs).indices; v <- 0 until F(fs)(ch).size) {
+    // set 'F' parameter
+    for {
+      fs <- F.indices
+      ch <- F(fs).indices
+      v <- 0 until F(fs)(ch).size
+    } {
       F(fs)(ch)(v) = str(0)(fs * F(fs).length + ch * F(fs)(ch).size + v)
     }
 
-    for (fs <- B.indices; v <- F(fs).indices) {
+    // set 'B' parameter
+    for {
+      fs <- B.indices
+      v <- F(fs).indices
+    } {
       B(fs)(v) = str(1)(fs * B(fs).size + v)
     }
   }
@@ -148,11 +156,20 @@ case class Convolution(
     val flst = data(0).split(",").map(_.toDouble)
     val blst = data(1).split(",").map(_.toDouble)
 
-    for (fs <- F.indices; ch <- F(fs).indices; v <- 0 until F(fs)(ch).size) {
+    // set 'F' parameter
+    for {
+      fs <- F.indices
+      ch <- F(fs).indices
+      v <- 0 until F(fs)(ch).size
+    } {
       F(fs)(ch)(v) = flst(fs * F(fs).length + ch * F(fs)(ch).size + v)
     }
 
-    for (fs <- B.indices; v <- F(fs).indices) {
+    // set 'B' parameter
+    for {
+      fs <- B.indices
+      v <- F(fs).indices
+    } {
       B(fs)(v) = blst(fs * B(fs).size + v)
     }
 
@@ -161,18 +178,9 @@ case class Convolution(
 
   // {{{ helper
 
-  // xをN等分する
-  def divideIntoN(x: DVD, N: Int): ADVD = {
-    val len = x.size / N
-    (for (i <- 0 until N) yield {
-      x(i * len until (i + 1) * len)
-    }).toArray
-  }
-
   def filter_init(M: Int, K: Int, H: Int): Array[ADVD] = {
-    (for (i <- 0 until M) yield {
-      (for (j <- 0 until K) yield {
-        //DenseVector.fill(H){rand.nextDouble}
+    (for (_ <- 0 until M) yield {
+      (for (_ <- 0 until K) yield {
         distr match {
           case "Xavier" => Xavier(H, input_width * input_width)
           case "He" => He(H, input_width * input_width)
@@ -188,20 +196,20 @@ case class Convolution(
     val w: Int = math.sqrt(input_size).toInt
     val h: Int = math.sqrt(filter.length).toInt
     val out_w: Int = (math.floor((w - h) / stride) + 1).toInt
-    // println(out_w)
 
+    // create Weight matrix
     val W = DenseMatrix.zeros[Double](math.pow(out_w, 2).toInt, math.pow(w, 2).toInt)
-    // println(s"W.rows = ${W.rows}, W.cols = ${W.cols}")
-    for (
-      i <- 0 until out_w;
-      j <- 0 until out_w;
-      p <- 0 until h;
+    for {
+      i <- 0 until out_w
+      j <- 0 until out_w
+      p <- 0 until h
       q <- 0 until h
-    ) {
+    } {
       val W_row = i * out_w + j
       val W_col = (i * stride + p) * w + stride * j + q
       W(W_row, W_col) = filter(p * h + q)
     }
+
     W
   }
 
@@ -221,12 +229,12 @@ case class Convolution(
     val w = (out_w - 1) * stride + h
 
     val Filter = DenseVector.zeros[Double](filter_size)
-    for (
-      i <- 0 until out_w;
-      j <- 0 until out_w;
-      p <- 0 until h;
+    for {
+      i <- 0 until out_w
+      j <- 0 until out_w
+      p <- 0 until h
       q <- 0 until h
-    ) {
+    } {
       val d_row = i * out_w + j
       val d_col = (i * stride + p) * w + stride * j + q
       Filter(p * h + q) += dmat(d_row, d_col)
@@ -241,7 +249,7 @@ case class Convolution(
   def copy_B(): ADVD = B.map(_.copy)
 
   override def duplicate(): Convolution = {
-    val dup = new Convolution(input_width, filter_width, filter_set, channel, stride, distr, SD, update_method, lr)
+    val dup = Convolution(input_width, filter_width, filter_set, channel, stride, distr, SD, update_method, lr)
     dup.F = this.copy_F()
     dup.B = this.copy_B()
     dup
