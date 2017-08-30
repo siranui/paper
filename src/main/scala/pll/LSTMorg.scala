@@ -169,8 +169,8 @@ class LSTMorg(val xn: Int, val hn: Int, val dist: String, var n: Double, val u: 
     val dbs = opt.update(Array(bf, bi, bc, bo), Array(dbf, dbi, dbc, dbo))
     bf -= dbs(0)
     bi -= dbs(1)
-    bc -= dbc(2)
-    bo -= dbo(3)
+    bc -= dbs(2)
+    bo -= dbs(3)
 
     val dws = opt.update(Array(Wf, Wi, Wc, Wo), Array(dWf, dWi, dWc, dWo))
     Wf -= dws(0)
