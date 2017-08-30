@@ -46,7 +46,7 @@ class BatchNorm(update_method: String = "SGD", lr: Double = 0.01) extends Layer 
 
   override def backwards(d: Array[DenseVector[Double]]): Array[DenseVector[Double]] = {
     dbeta += d.reduce(_ + _)
-    dgamma += (xn zip d).map(i => i._1 *:* i._2).reduce(_ + _)
+    dgamma += (xn zip d).map { case (xn_i, d_i) => xn_i *:* d_i }.reduce(_ + _)
 
     val batch_size = d.length.toDouble
 
