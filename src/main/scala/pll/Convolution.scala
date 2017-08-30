@@ -179,16 +179,20 @@ case class Convolution(
   // {{{ helper
 
   def filter_init(M: Int, K: Int, H: Int): Array[ADVD] = {
-    (for (_ <- 0 until M) yield {
-      (for (_ <- 0 until K) yield {
-        distr match {
-          case "Xavier" => Xavier(H, input_width * input_width)
-          case "He" => He(H, input_width * input_width)
-          case "Uniform" => Uniform(H, SD)
-          case "Gaussian" | _ => Gaussian(H, SD)
-        }
-      }).toArray
-    }).toArray
+    val filters: Array[ADVD] = Array.ofDim[DVD](M, K)
+    for {
+      i <- filters.indices
+      j <- filters(i).indices
+    } {
+      filters(i)(j) = distr match {
+        case "Xavier" => Xavier(H, input_width * input_width)
+        case "He" => He(H, input_width * input_width)
+        case "Uniform" => Uniform(H, SD)
+        case "Gaussian" | _ => Gaussian(H, SD)
+      }
+    }
+
+    filters
   }
 
   // 入力画像とフィルターは正方形に限定
@@ -217,9 +221,7 @@ case class Convolution(
    * filters[ch, height*width]
    */
   def filter2Weight(filters: ADVD, input_size: Int, stride: Int = 1): DMD = {
-    val Ws = for (i <- filters) yield {
-      filter2Weight(i, input_size, stride)
-    }
+    val Ws = filters.map(i => filter2Weight(i, input_size, stride))
     Ws.reduceLeft(DenseMatrix.horzcat(_, _))
   }
 

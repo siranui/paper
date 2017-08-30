@@ -255,13 +255,16 @@ object batch_font_GLO {
     val pw = new java.io.PrintWriter(osw)
 
     for (data <- dataList) {
-      // FIXME: use 'mkString(",")'
+      // TODO: check below method. if 'for expr's results equal this, replace it.
+      // pw.write(data.toArray.mkString(","))
+
       for (i <- 0 until data.size) {
         pw.write(data(i).toString)
         if (i != data.size - 1) {
           pw.write(",")
         }
       }
+
       pw.write("\n")
     }
     pw.close()
