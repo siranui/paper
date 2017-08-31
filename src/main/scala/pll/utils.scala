@@ -65,6 +65,44 @@ object utils {
     (0 until N).map(i => x(i * len until (i + 1) * len)).toArray
   }
 
+  /** read data from file.
+   *
+   * @param fn   filename. (relative path from root)
+   * @param ds   read line size from head. if (ds == 0) then read all.   *
+   * @param divV divide value.
+   *
+   * @return read data that divide divV( [0,255] -> [0,1) ).
+   */
+  def read(fn: String, ds: Int = 0, divV: Double = 256): Array[DenseVector[Double]] = {
+    val f = ds match {
+      case 0 =>
+        io.Source.fromFile(fn).getLines
+          .map(_.split(",").map(_.toDouble / divV).toArray).toArray
+      case _ =>
+        io.Source.fromFile(fn).getLines.take(ds)
+          .map(_.split(",").map(_.toDouble / divV).toArray).toArray
+    }
+    val g = f.map(a => DenseVector(a))
+    g
+  }
+
+  /** write data to file.
+   *
+   * @param fn       filename. (relative path from root)
+   * @param dataList data.
+   */
+  def write(fn: String, dataList: List[DenseVector[Int]]): Unit = {
+    val fos = new java.io.FileOutputStream(fn, false) //true: 追記, false: 上書き
+    val osw = new java.io.OutputStreamWriter(fos, "UTF-8")
+    val pw = new java.io.PrintWriter(osw)
+
+    for (data <- dataList) {
+      pw.write(data.toArray.mkString(","))
+      pw.write("\n")
+    }
+    pw.close()
+  }
+
   def print_excuting_time(proc: => Unit): Unit = {
     val start = System.currentTimeMillis
     proc
