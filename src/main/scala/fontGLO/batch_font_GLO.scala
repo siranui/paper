@@ -10,7 +10,7 @@ class batch_font_GLO(var LapDir: Int = 8) extends batchNet {
   val Lap = Convolution(32, 3, 1, 1, 1, "", 1d, "", 1d)
 
   val l: DenseVector[Double] = LapDir match {
-    case 4 => DenseVector[Double](
+    case 4     => DenseVector[Double](
       0, 1, 0,
       1, -4, 1,
       0, 1, 0
@@ -77,19 +77,19 @@ object param {
     var i = 0
     while (i < args.length) {
       args(i) match {
-        case "-z" | "--z-dimension" =>
+        case "-z" | "--z-dimension"   =>
           zdim = args(i + 1).toInt
           i += 2
-        case "-d" | "--data-size" =>
+        case "-d" | "--data-size"     =>
           data_size = args(i + 1).toInt
           i += 2
-        case "-e" | "--epoch" =>
+        case "-e" | "--epoch"         =>
           epoch = args(i + 1).toInt
           i += 2
-        case "-b" | "--batch-size" =>
+        case "-b" | "--batch-size"    =>
           batch = args(i + 1).toInt
           i += 2
-        case "--do-batch-norm" =>
+        case "--do-batch-norm"        =>
           doBatchNorm = args(i + 1).toBoolean
           i += 2
         case "-L" | "--loss-function" =>
@@ -98,13 +98,13 @@ object param {
         case "--laplacian-filter-dir" =>
           LapDir = args(i + 1).toInt
           i += 2
-        case "-p" | "--pad" =>
+        case "-p" | "--pad"           =>
           pad = args(i + 1).toInt
           i += 2
-        case "-f" | "--filter-width" =>
+        case "-f" | "--filter-width"  =>
           fil_w = args(i + 1).toInt
           i += 2
-        case "-s" | "--stride" =>
+        case "-s" | "--stride"        =>
           stride = args(i + 1).toInt
           i += 2
         case "-u" | "--update-method" =>
@@ -113,16 +113,16 @@ object param {
         case "-l" | "--learning-rate" =>
           lr = args(i + 1).toDouble
           i += 2
-        case "--do-shuffle" =>
+        case "--do-shuffle"           =>
           doShuffle = args(i + 1).toBoolean
           i += 2
-        case "--do-save" =>
+        case "--do-save"              =>
           doSave = args(i + 1).toBoolean
           i += 2
-        case "--save-time" =>
+        case "--save-time"            =>
           saveTime = args(i + 1).toInt
           i += 2
-        case _ =>
+        case _                        =>
           println(s"unknown option:${args(i)}")
           i += 1
       }
@@ -155,7 +155,7 @@ object batch_font_GLO {
         rand.nextGaussian / math.sqrt(data_size)
       }
     }
-    val train_d = read("data/fonts/font-all-d.txt", data_size)
+    val train_d = utils.read("data/fonts/font-all-d.txt", data_size)
 
 
     // TODO: 関数化する
@@ -164,20 +164,20 @@ object batch_font_GLO {
     val g = new batch_font_GLO(LapDir)
 
     g.add(new Pad(1, 1, "down"))
-    .add(new Convolution(12, 3, 10, 1, 3, "He", 1d, up, lr))
+      .add(new Convolution(12, 3, 10, 1, 3, "He", 1d, up, lr))
     if (doBatchNorm) g.add(new BatchNorm(up))
     g.add(new ReLU())
-    .add(new Pad(10, pad, "up"))
-    .add(new Convolution(4 * (pad + 1) + pad, fil_w, 5, 10, stride, "He", 1d, up, lr))
+      .add(new Pad(10, pad, "up"))
+      .add(new Convolution(4 * (pad + 1) + pad, fil_w, 5, 10, stride, "He", 1d, up, lr))
     if (doBatchNorm) g.add(new BatchNorm(up))
     g.add(new ReLU())
-    .add(new Pad(5, pad, "up"))
-    .add(new Convolution(8 * (pad + 1) + pad, fil_w, 3, 5, stride, "He", 1d, up, lr))
+      .add(new Pad(5, pad, "up"))
+      .add(new Convolution(8 * (pad + 1) + pad, fil_w, 3, 5, stride, "He", 1d, up, lr))
     if (doBatchNorm) g.add(new BatchNorm(up))
     g.add(new ReLU())
-    .add(new Pad(3, pad, "up"))
-    .add(new Convolution(16 * (pad + 1) + pad, fil_w, 1, 3, stride, "He", 1d, up, lr))
-    .add(new Tanh())
+      .add(new Pad(3, pad, "up"))
+      .add(new Convolution(16 * (pad + 1) + pad, fil_w, 1, 3, stride, "He", 1d, up, lr))
+      .add(new Tanh())
 
 
     // training
@@ -200,7 +200,7 @@ object batch_font_GLO {
           case "Laplacian" | "laplacian" | "Lap" | "lap" =>
             E += g.calc_Lap_loss(ys, ts)
             d = g.calc_Lap_grad(ys, ts)
-          case "L2" | _ =>
+          case "L2" | _                                  =>
             E += g.calc_L2(ys, ts)
             d = g.calc_L2_grad(ys, ts)
         }
@@ -220,7 +220,7 @@ object batch_font_GLO {
           g.reset()
         }
 
-        write(s"${res_path}/${filename}", ys.reverse)
+        utils.write(s"${res_path}/${filename}", ys.reverse)
 
         // save weights
         for (i <- g.layers.indices) {
@@ -238,38 +238,6 @@ object batch_font_GLO {
     }
 
     println(args.toList)
-  }
-
-  /** read data from file.
-   *
-   * @param fn filename. (relative path from root)
-   * @param ds read line size from head. if (ds == 0) then read all.
-   * @return read data that divide 256( [0,255] -> [0,1] ).
-   */
-  def read(fn: String, ds: Int = 0): Array[DenseVector[Double]] = {
-    val f = ds match {
-      case 0 => io.Source.fromFile(fn).getLines.map(_.split(",").map(_.toDouble / 256d).toArray).toArray
-      case _ => io.Source.fromFile(fn).getLines.take(ds).map(_.split(",").map(_.toDouble / 256d).toArray).toArray
-    }
-    val g = f.map(a => DenseVector(a))
-    g
-  }
-
-  /** write data to file.
-   *
-   * @param fn filename. (relative path from root)
-   * @param dataList data.
-   */
-  def write(fn: String, dataList: List[DenseVector[Int]]): Unit = {
-    val fos = new java.io.FileOutputStream(fn, false) //true: 追記, false: 上書き
-    val osw = new java.io.OutputStreamWriter(fos, "UTF-8")
-    val pw = new java.io.PrintWriter(osw)
-
-    for (data <- dataList) {
-      pw.write(data.toArray.mkString(","))
-      pw.write("\n")
-    }
-    pw.close()
   }
 
 }
