@@ -71,11 +71,9 @@ class NetworkWithDropout() extends Network {
   def forward_at_test(x: DenseVector[Double]): DenseVector[Double] = {
     var forward_value = x
     for (layer <- layers) {
-      layer match {
-        case dropout: Dropout =>
-          forward_value = dropout.forward_at_test(forward_value)
-        case _ =>
-          forward_value = layer.forward(forward_value)
+      forward_value = layer match {
+        case dropout: Dropout => dropout.forward_at_test(forward_value)
+        case _: Layer         => layer.forward(forward_value)
       }
     }
     forward_value
