@@ -6,17 +6,17 @@ import breeze.linalg._
 case class LeakyReLU(alpha: Double = 0.02) extends Layer {
   var mask: Option[List[DenseVector[Double]]] = None
 
-  def lrelu(x: Double) = {
+  def lrelu(x: Double): Double = {
     if (x >= 0) x else alpha * x
   }
 
-  def forward(x: DenseVector[Double]) = {
+  def forward(x: DenseVector[Double]): DenseVector[Double] = {
     val out = x.map(lrelu)
     this.mask = Some(out.map(i => if (i >= 0d) 1d else alpha) :: this.mask.getOrElse(Nil))
     out
   }
 
-  def backward(d: DenseVector[Double]) = {
+  def backward(d: DenseVector[Double]): DenseVector[Double] = {
     val m = this.mask.get.head
     this.mask = Some(this.mask.get.tail)
     m *:* d
@@ -32,7 +32,7 @@ case class LeakyReLU(alpha: Double = 0.02) extends Layer {
 
   def load(filename: String) {}
 
-  def load(data: List[String]) = {
+  def load(data: List[String]): List[String] = {
     data
   }
 
