@@ -3,6 +3,22 @@ package pll
 
 import breeze.linalg._
 
+/** convolution class.
+ *
+ * @note Don't support "rectangle"(width != height).
+ *       Only "perfect square"(width == height) is supported.
+ *
+ * @param input_width   width(= height) of input image.
+ * @param filter_width  width(= height) of filter.
+ * @param filter_set    num of filters.
+ * @param channel       channel of input image.
+ *                      e.g.)  RGB image -> 3 channel
+ * @param stride        stride size. Don't set "zero" or "minus".
+ * @param distr         distribution
+ * @param SD            initial weight's standard deviation.
+ * @param update_method update method for learning parameters.
+ * @param lr            learning rate.
+ */
 case class Convolution(
   input_width: Int,
   filter_width: Int,
@@ -34,7 +50,7 @@ case class Convolution(
   var F: Array[ADVD] = filter_init(filter_set, channel, filter_width * filter_width)
   // bias
   var B: ADVD = Array.ofDim[DVD](filter_set)
-                .map(_ => DenseVector.zeros[Double](out_width * out_width))
+    .map(_ => DenseVector.zeros[Double](out_width * out_width))
 
   var dF: Array[ADVD] = F.map(_.map(_ => DenseVector.zeros[Double](filter_width * filter_width)))
   var dB: ADVD = B.map(_ => DenseVector.zeros[Double](out_width * out_width))
@@ -185,9 +201,9 @@ case class Convolution(
       j <- filters(i).indices
     } {
       filters(i)(j) = distr match {
-        case "Xavier" => Xavier(H, input_width * input_width)
-        case "He" => He(H, input_width * input_width)
-        case "Uniform" => Uniform(H, SD)
+        case "Xavier"       => Xavier(H, input_width * input_width)
+        case "He"           => He(H, input_width * input_width)
+        case "Uniform"      => Uniform(H, SD)
         case "Gaussian" | _ => Gaussian(H, SD)
       }
     }
