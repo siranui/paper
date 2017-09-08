@@ -3,7 +3,7 @@ lazy val root = (project in file("."))
     name := "paper"
   )
 
-scalaVersion := "2.12.2"
+scalaVersion := "2.12.3"
 
 scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xlint")
 scalacOptions in (Compile, console) ~= (_.filterNot(_=="-Xlint"))
