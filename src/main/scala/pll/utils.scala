@@ -103,10 +103,12 @@ object utils {
     pw.close()
   }
 
-  def print_excuting_time(proc: => Unit): Unit = {
+  def printExcutingTime[T](proc: => T): T = {
     val start = System.currentTimeMillis
-    proc
-    println((System.currentTimeMillis - start) + "msec")
+    val result: T = proc
+    println((System.currentTimeMillis - start) + " msec")
+
+    result
   }
 
 }

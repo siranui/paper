@@ -176,7 +176,7 @@ object batch_font_GLO {
     if (doBatchNorm) g.add(new BatchNorm(up))
     g.add(new ReLU())
       .add(new Pad(3, pad, "up"))
-      .add(new Convolution(16 * (pad + 1) + pad, fil_w, 1, 3, stride, "He", 1d, up, lr))
+      .add(new Convolution(16 * (pad + 1) + pad, fil_w, 1, 3, stride, "Xavier", 1d, up, lr))
       .add(new Tanh())
 
 
