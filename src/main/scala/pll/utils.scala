@@ -106,7 +106,7 @@ object utils {
   def printExcutingTime[T](proc: => T): T = {
     val start = System.currentTimeMillis
     val result: T = proc
-    println((System.currentTimeMillis - start) + " msec")
+    println(s"Excuting Time: ${System.currentTimeMillis - start} msec")
 
     result
   }
