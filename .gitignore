@@ -5,3 +5,4 @@ project/*
 *.txt
 *.txt.png
 .idea
+*/results/*
