@@ -55,81 +55,9 @@ class batch_font_GLO(var LapDir: Int = 8) extends batchNet {
 
 }
 
-object param {
-  // parameters
-  var zdim = 100
-  var data_size = 25
-  var epoch = 100
-  var batch = 5
-  var pad = 1 //3
-  var fil_w = 2 //4
-  var stride = 1 //2
-  var up = "Adam"
-  var lr = 0.0002
-  var Loss = "Laplacian"
-  var LapDir = 8
-  var doShuffle = true
-  var doSave = true
-  var doBatchNorm = true
-  var saveTime = 10
 
-  def setParamFromArgs(args: Array[String]): Unit = {
-    var i = 0
-    while (i < args.length) {
-      args(i) match {
-        case "-z" | "--z-dimension"   =>
-          zdim = args(i + 1).toInt
-          i += 2
-        case "-d" | "--data-size"     =>
-          data_size = args(i + 1).toInt
-          i += 2
-        case "-e" | "--epoch"         =>
-          epoch = args(i + 1).toInt
-          i += 2
-        case "-b" | "--batch-size"    =>
-          batch = args(i + 1).toInt
-          i += 2
-        case "--do-batch-norm"        =>
-          doBatchNorm = args(i + 1).toBoolean
-          i += 2
-        case "-L" | "--loss-function" =>
-          Loss = args(i + 1)
-          i += 2
-        case "--laplacian-filter-dir" =>
-          LapDir = args(i + 1).toInt
-          i += 2
-        case "-p" | "--pad"           =>
-          pad = args(i + 1).toInt
-          i += 2
-        case "-f" | "--filter-width"  =>
-          fil_w = args(i + 1).toInt
-          i += 2
-        case "-s" | "--stride"        =>
-          stride = args(i + 1).toInt
-          i += 2
-        case "-u" | "--update-method" =>
-          up = args(i + 1)
-          i += 2
-        case "-l" | "--learning-rate" =>
-          lr = args(i + 1).toDouble
-          i += 2
-        case "--do-shuffle"           =>
-          doShuffle = args(i + 1).toBoolean
-          i += 2
-        case "--do-save"              =>
-          doSave = args(i + 1).toBoolean
-          i += 2
-        case "--save-time"            =>
-          saveTime = args(i + 1).toInt
-          i += 2
-        case _                        =>
-          println(s"unknown option:${args(i)}")
-          i += 1
-      }
-    }
-    if (epoch < saveTime) saveTime = epoch
-  }
-}
+
+
 
 object batch_font_GLO {
 
@@ -138,7 +66,8 @@ object batch_font_GLO {
   def main(args: Array[String]) {
     val rand = new util.Random(0)
 
-    setParamFromArgs(args)
+    param.setParamFromArgs(args)
+    param.readConf("set.txt")
 
     val start_time = (scala.sys.process.Process("date +%y%m%d-%H%M%S") !!).init
     val res_path = s"src/main/scala/fontGLO/results/${start_time}${args.mkString("-")}"
@@ -161,24 +90,27 @@ object batch_font_GLO {
     // TODO: 関数化する
     // make network
     // 100(1*10*10) -> 10*4*4 -> 5*8*8 -> 3*16*16 -> 1*32*32
-    val g = new batch_font_GLO(LapDir)
 
-    g.add(new Pad(1, 1, "down"))
-      .add(new Convolution(12, 3, 10, 1, 3, "He", 1d, up, lr))
-    if (doBatchNorm) g.add(new BatchNorm(up))
-    g.add(new ReLU())
-      .add(new Pad(10, pad, "up"))
-      .add(new Convolution(4 * (pad + 1) + pad, fil_w, 5, 10, stride, "He", 1d, up, lr))
-    if (doBatchNorm) g.add(new BatchNorm(up))
-    g.add(new ReLU())
-      .add(new Pad(5, pad, "up"))
-      .add(new Convolution(8 * (pad + 1) + pad, fil_w, 3, 5, stride, "He", 1d, up, lr))
-    if (doBatchNorm) g.add(new BatchNorm(up))
-    g.add(new ReLU())
-      .add(new Pad(3, pad, "up"))
-      .add(new Convolution(16 * (pad + 1) + pad, fil_w, 1, 3, stride, "Xavier", 1d, up, lr))
-      .add(new Tanh())
+    // val g = new batch_font_GLO(LapDir)
 
+    // g.add(new Pad(1, 1, "down"))
+    //   .add(new Convolution(12, 3, 10, 1, 3, "He", 1d, up, lr))
+    // if (doBatchNorm) g.add(new BatchNorm(up))
+    // g.add(new ReLU())
+    //   .add(new Pad(10, pad, "up"))
+    //   .add(new Convolution(4 * (pad + 1) + pad, fil_w, 5, 10, stride, "He", 1d, up, lr))
+    // if (doBatchNorm) g.add(new BatchNorm(up))
+    // g.add(new ReLU())
+    //   .add(new Pad(5, pad, "up"))
+    //   .add(new Convolution(8 * (pad + 1) + pad, fil_w, 3, 5, stride, "He", 1d, up, lr))
+    // if (doBatchNorm) g.add(new BatchNorm(up))
+    // g.add(new ReLU())
+    //   .add(new Pad(3, pad, "up"))
+    //   .add(new Convolution(16 * (pad + 1) + pad, fil_w, 1, 3, stride, "Xavier", 1d, up, lr))
+    //   .add(new Tanh())
+
+    val g: batch_font_GLO = param.connectNetwork(new batch_font_GLO(LapDir))
+    g.layers.foreach(println)
 
     // training
     for (e <- 0 until epoch) {
