@@ -10,6 +10,7 @@ class Affine(
   val s: Double,
   val koshin: String,
   val a: Double) extends Layer {
+
   var opt: Opt = Opt.create(koshin, a)
   var w: DenseMatrix[Double] = DenseMatrix.zeros[Double](yn, xn)
   var b: DenseVector[Double] = DenseVector.zeros[Double](yn)
