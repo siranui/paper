@@ -67,7 +67,7 @@ object batch_font_GLO {
     val rand = new util.Random(0)
 
     param.setParamFromArgs(args)
-    param.readConf("set.txt")
+    param.readConf("net.conf")
 
     val start_time = (scala.sys.process.Process("date +%y%m%d-%H%M%S") !!).init
     val res_path = s"src/main/scala/fontGLO/results/${start_time}${args.mkString("-")}"
