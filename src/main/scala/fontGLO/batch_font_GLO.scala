@@ -67,11 +67,11 @@ object batch_font_GLO {
     val rand = new util.Random(0)
 
     param.setParamFromArgs(args)
-    param.readConf("set.txt")
+    param.readConf(networkConfFile)
 
     val start_time = (scala.sys.process.Process("date +%y%m%d-%H%M%S") !!).init
-    val res_path = s"src/main/scala/fontGLO/results/${start_time}${args.mkString("-")}"
-    val weights_path = s"src/main/scala/fontGLO/weights/${start_time}${args.mkString("-")}"
+    val res_path = s"${savePath}/results/${start_time}${args.mkString("-")}"
+    val weights_path = s"${savePath}/weights/${start_time}${args.mkString("-")}"
 
     if (doSave) {
       val mkdir = scala.sys.process.Process(s"mkdir -p ${res_path} ${weights_path}").run
@@ -84,7 +84,7 @@ object batch_font_GLO {
         rand.nextGaussian / math.sqrt(data_size)
       }
     }
-    val train_d = utils.read("data/fonts/font-all-d.txt", data_size)
+    val train_d = utils.read("/home/pll03/sbt/paper/data/fonts/font-all-d.txt", data_size)
 
 
     // TODO: 関数化する

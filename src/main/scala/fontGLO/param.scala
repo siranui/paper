@@ -9,15 +9,17 @@ object param {
   var data_size = 25
   var epoch = 100
   var batch = 5
-  var pad = 1 //3
-  var fil_w = 2 //4
-  var stride = 1 //2
+  var pad = 3 //1
+  var fil_w = 4 //2
+  var stride = 2 //1
   var distr = "He"
   var SD = 1d
   var up = "Adam"
   var lr = 0.0002
   var Loss = "Laplacian"
   var LapDir = 8
+  var savePath = "src/main/scala/fontGLO"
+  var networkConfFile = "net.conf"
   var doShuffle = true
   var doSave = true
   var doBatchNorm = true
@@ -78,6 +80,12 @@ object param {
         case "-l" | "--learning-rate" =>
           lr = args(i + 1).toDouble
           i += 2
+        case "--save-path"            =>
+          savePath = args(i + 1)
+          i += 2
+        case "-n" | "--network-conf-file"  =>
+          networkConfFile = args(i + 1)
+          i += 2
         case "--do-shuffle"           =>
           doShuffle = args(i + 1).toBoolean
           i += 2
@@ -128,12 +136,14 @@ object param {
                 new Convolution(InW(i) * (Pad(i) + 1) + Pad(i), fil_w, Ch(i + 1), Ch(i), stride, InitWeights(i), SD, up, lr)
               )
             }
-          case "B" =>
+          case "BN" =>
             net.add(new BatchNorm(up))
           case "R" =>
             net.add(new ReLU())
           case "T" =>
             net.add(new Tanh())
+          case "S" =>
+            net.add(new Sigmoid())
           case _   =>
         }
       }
