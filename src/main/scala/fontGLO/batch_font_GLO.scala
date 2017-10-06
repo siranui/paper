@@ -67,11 +67,11 @@ object batch_font_GLO {
     val rand = new util.Random(0)
 
     param.setParamFromArgs(args)
-    param.readConf("net.conf")
+    set.readConf(networkConfFile)
 
     val start_time = (scala.sys.process.Process("date +%y%m%d-%H%M%S") !!).init
-    val res_path = s"src/main/scala/fontGLO/results/${start_time}${args.mkString("-")}"
-    val weights_path = s"src/main/scala/fontGLO/weights/${start_time}${args.mkString("-")}"
+    val res_path = s"${savePath}/results/${start_time}${args.mkString("-")}"
+    val weights_path = s"${savePath}/weights/${start_time}${args.mkString("-")}"
 
     if (doSave) {
       val mkdir = scala.sys.process.Process(s"mkdir -p ${res_path} ${weights_path}").run
@@ -109,7 +109,7 @@ object batch_font_GLO {
     //   .add(new Convolution(16 * (pad + 1) + pad, fil_w, 1, 3, stride, "Xavier", 1d, up, lr))
     //   .add(new Tanh())
 
-    val g: batch_font_GLO = param.connectNetwork(new batch_font_GLO(LapDir))
+    val g: batch_font_GLO = set.connectNetwork(new batch_font_GLO(LapDir))
     g.layers.foreach(println)
 
     // training
@@ -143,7 +143,8 @@ object batch_font_GLO {
       // save
       val saveCondition: Boolean = (e == 0) || (e % (epoch / saveTime) == 0) || (e == epoch - 1)
       if (doSave && saveCondition) {
-        val filename = s"batch_font_GLO_ds${data_size}_epoch${e}of${epoch}_batch${batch}_pad${pad}_stride${stride}.txt"
+        // val filename = s"batch_font_GLO_ds${data_size}_epoch${e}of${epoch}_batch${batch}_pad${pad}_stride${stride}.txt"
+        val filename = s"batch_font_GLO_ds${data_size}_epoch${e}of${epoch}_batch${batch}.txt"
 
         var ys = List[DenseVector[Int]]()
         for (z <- Z) {
