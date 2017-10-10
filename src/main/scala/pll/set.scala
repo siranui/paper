@@ -66,12 +66,6 @@ object set {
 
   def connectNetwork[N <: Network](net: N): N = {
 
-    // val SD     = 1d
-    // val upm    = "SGD"
-    // val lr     = 0.01
-    // val fil_w  = 4
-    // val stride = 2
-
     for(i <- Layers.indices){
       for(layer <- Layers(i)){
         layer match {
@@ -87,6 +81,8 @@ object set {
             net.add(new BatchNorm(UpdateMethod(i)))
           case "R" =>
             net.add(new ReLU())
+          case "LR" =>
+            net.add(new LeakyReLU(0.02))
           case "T" =>
             net.add(new Tanh())
           case "S" =>
@@ -94,6 +90,7 @@ object set {
           case _   =>
         }
       }
+      println("debug: " + net.layers(i))
     }
 
     net
