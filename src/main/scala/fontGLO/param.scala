@@ -1,6 +1,8 @@
 package fontGLO
 
 
+import pll._
+
 object param {
   // parameters
   var zdim = 100
@@ -11,6 +13,7 @@ object param {
   var LapDir = 8
   var savePath = "src/main/scala/fontGLO"
   var networkConfFile = "net.conf"
+  var dataSource = "/home/pll03/sbt/paper/data/fonts/font-all-d.txt"
   var doShuffle = true
   var doSave = true
   var saveTime = 10
@@ -43,6 +46,9 @@ object param {
           i += 2
         case "-n" | "--network-conf-file"  =>
           networkConfFile = args(i + 1)
+          i += 2
+        case "--data-source"  =>
+          dataSource = args(i + 1)
           i += 2
         case "--do-shuffle"           =>
           doShuffle = args(i + 1).toBoolean

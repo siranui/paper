@@ -78,13 +78,14 @@ object batch_font_GLO {
       mkdir.exitValue()
     }
 
+    val train_d = utils.read(dataSource, data_size)
+
     var Z = Array.ofDim[DenseVector[Double]](data_size)
     Z = Z.map { _ =>
       DenseVector.fill(zdim) {
         rand.nextGaussian / math.sqrt(data_size)
       }
     }
-    val train_d = utils.read("data/fonts/font-all-d.txt", data_size)
 
 
     // TODO: 関数化する
