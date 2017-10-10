@@ -70,8 +70,8 @@ object batch_font_GLO {
     set.readConf(networkConfFile)
 
     val start_time = (scala.sys.process.Process("date +%y%m%d-%H%M%S") !!).init
-    val res_path = s"${savePath}/results/${start_time}${args.mkString("-")}"
-    val weights_path = s"${savePath}/weights/${start_time}${args.mkString("-")}"
+    val res_path = s"${savePath}/results/${start_time}"
+    val weights_path = s"${savePath}/weights/${start_time}"
 
     if (doSave) {
       val mkdir = scala.sys.process.Process(s"mkdir -p ${res_path} ${weights_path}").run
@@ -134,8 +134,8 @@ object batch_font_GLO {
             E += g.calc_Lap_loss(ys, ts)
             d = g.calc_Lap_grad(ys, ts)
           case "L2" | _                                  =>
-            E += g.calc_L2(ys, ts)
-            d = g.calc_L2_grad(ys, ts)
+            E += err.calc_L2(ys, ts)
+            d = grad.calc_L2_grad(ys, ts)
         }
 
         g.update(d)

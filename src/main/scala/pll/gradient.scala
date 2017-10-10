@@ -2,7 +2,7 @@ package pll
 
 import breeze.linalg._
 
-object grad {
+object gradient {
   def numerical_diff(f: Double => Double, x: Double) = {
     val h = 1e-8
 

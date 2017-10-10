@@ -1,8 +1,6 @@
 package fontGLO
 
 
-import pll._
-
 object param {
   // parameters
   var zdim = 100

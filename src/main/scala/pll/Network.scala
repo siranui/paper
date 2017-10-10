@@ -4,6 +4,8 @@ package pll
 import breeze.linalg._
 
 class Network() {
+  val rand = new util.Random(0)
+
   var layers = List[Layer]()
 
   def add(layer: Layer): Network = {
@@ -19,17 +21,20 @@ class Network() {
     predict_value
   }
 
-  def calc_L2(y: DenseVector[Double], t: DenseVector[Double]): Double = {
-    val E = y -:- t
-    sum((E *:* E) /:/ 2d)
-  }
-
-  def calc_cross_entropy_loss(y: DenseVector[Double], t: DenseVector[Double]): Double = {
-    -sum(t *:* breeze.numerics.log(y))
-  }
-
-  def calc_L2_grad(y: DenseVector[Double], t: DenseVector[Double]): DenseVector[Double] = {
-    y -:- t
+  def train(
+    inputs: Seq[DenseVector[Double]],
+    tags: Seq[DenseVector[Double]],
+    calcError: (DenseVector[Double], DenseVector[Double]) => Double,
+    calcGrad: (DenseVector[Double], DenseVector[Double]) => DenseVector[Double],
+  ) {
+    var E = 0d
+    for((x, t) <- (inputs zip tags)){
+      val y = predict(x)
+      val d = calcGrad(y, t)
+      E += calcError(y, t)
+      update(d)
+    }
+    println(s"E:$E")
   }
 
   def backprop(d: DenseVector[Double]): DenseVector[Double] = {
@@ -91,28 +96,29 @@ class batchNet() extends Network {
     tmp
   }
 
-  def calc_L2(ys: ADV, ts: ADV): Double = {
+  def batch_train(
+    inputs: Seq[DenseVector[Double]],
+    tags: Seq[DenseVector[Double]],
+    batchSize: Int,
+    calcError: (ADV, ADV) => Double,
+    calcGrad: (ADV, ADV) => ADV
+  ) {
     var E = 0d
-    for ((y, t) <- ys zip ts) {
-      val tmp = y -:- t
-      E += sum((tmp *:* tmp) /:/ 2d)
-    }
-    E
-  }
+    var unusedIdx = rand.shuffle(List.range(0, inputs.size))
+    while (unusedIdx.nonEmpty) {
+      val batchMask = unusedIdx.take(batchSize)
+      unusedIdx = unusedIdx.drop(batchSize)
 
-  def calc_cross_entropy_loss(ys: Array[DenseVector[Double]], ts: Array[DenseVector[Double]]): Double = {
-    var L = 0d
-    for ((y, t) <- ys zip ts) {
-      L += -sum(t *:* breeze.numerics.log(y))
-    }
-    L
-  }
+      val xs = batchMask.map(idx => inputs(idx)).toArray
+      val ts = batchMask.map(idx => tags(idx)).toArray
+      val ys = predict(xs)
 
-  def calc_L2_grad(ys: Array[DenseVector[Double]], ts: Array[DenseVector[Double]]): Array[DenseVector[Double]] = {
-    val grads = for ((y, t) <- ys zip ts) yield {
-      y -:- t
+      E += calcError(ys, ts)
+      val d = calcGrad(ys, ts)
+
+      update(d)
     }
-    grads
+    println(s"E:$E")
   }
 
   def backprop(ds: ADV): Array[DenseVector[Double]] = {
