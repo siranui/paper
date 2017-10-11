@@ -48,12 +48,6 @@ object param {
         case "--data-source"  =>
           dataSource = args(i + 1)
           i += 2
-        case "--save-path"            =>
-          savePath = args(i + 1)
-          i += 2
-        case "-n" | "--network-conf-file"  =>
-          networkConfFile = args(i + 1)
-          i += 2
         case "--do-shuffle"           =>
           doShuffle = args(i + 1).toBoolean
           i += 2
