@@ -24,7 +24,9 @@ object convAE {
       mkdir.exitValue()
     }
 
-    val train_d = utils.read(dataSource, data_size)
+    val data = utils.read(dataSource, data_size*2)
+    val train_d = data.take(data_size)
+    val test_d = data.drop(data_size)
 
     var Z = Array.ofDim[DenseVector[Double]](data_size)
     Z = (Z zip train_d).map { case(z, td) =>
@@ -38,7 +40,9 @@ object convAE {
     // training
     for (e <- 0 until epoch) {
 
-      g.batch_train(Z,train_d,batch,err.calc_L2,grad.calc_L2_grad)
+      val train = g.batch_train(Z, train_d, batch, err.calc_L2, grad.calc_L2_grad)
+      val test = g.test(test_d, test_d, err.calc_L2)
+      println(s"$e, E: ${train._1}, tE: ${test._1}")
 
       // save
       val saveCondition: Boolean = (e == 0) || (e % (epoch / saveTime) == 0) || (e == epoch - 1)
@@ -53,6 +57,7 @@ object convAE {
         }
 
         utils.write(s"${res_path}/${filename}", ys.reverse)
+        utils.write(s"${res_path}/test_${filename}", test._2.map(i => convert(i*256d, Int)))
 
         // save weights
         for (i <- g.layers.indices) {

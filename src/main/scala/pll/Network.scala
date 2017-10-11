@@ -26,15 +26,33 @@ class Network() {
     tags: Seq[DenseVector[Double]],
     calcError: (DenseVector[Double], DenseVector[Double]) => Double,
     calcGrad: (DenseVector[Double], DenseVector[Double]) => DenseVector[Double],
-  ) {
+  ) = {
     var E = 0d
+    var ys: List[DenseVector[Double]] = Nil
     for((x, t) <- (inputs zip tags)){
       val y = predict(x)
       val d = calcGrad(y, t)
       E += calcError(y, t)
+      ys = y :: ys
       update(d)
     }
-    println(s"E:$E")
+    (E,ys.reverse)
+  }
+
+  def test(
+    inputs: Seq[DenseVector[Double]],
+    tags: Seq[DenseVector[Double]],
+    calcError: (DenseVector[Double], DenseVector[Double]) => Double,
+  ): (Double, List[DenseVector[Double]]) = {
+    var E = 0d
+    var ys: List[DenseVector[Double]] = Nil
+    for((x, t) <- (inputs zip tags)){
+      val y = predict(x)
+      reset()
+      E += calcError(y, t)
+      ys = y :: ys
+    }
+    (E,ys.reverse)
   }
 
   def backprop(d: DenseVector[Double]): DenseVector[Double] = {
@@ -102,8 +120,9 @@ class batchNet() extends Network {
     batchSize: Int,
     calcError: (ADV, ADV) => Double,
     calcGrad: (ADV, ADV) => ADV
-  ) {
+  ) = {
     var E = 0d
+    var yslst: List[Seq[DenseVector[Double]]] = Nil
     var unusedIdx = rand.shuffle(List.range(0, inputs.size))
     while (unusedIdx.nonEmpty) {
       val batchMask = unusedIdx.take(batchSize)
@@ -113,12 +132,14 @@ class batchNet() extends Network {
       val ts = batchMask.map(idx => tags(idx)).toArray
       val ys = predict(xs)
 
+      yslst = ys :: yslst
       E += calcError(ys, ts)
       val d = calcGrad(ys, ts)
 
       update(d)
     }
-    println(s"E:$E")
+
+    (E, yslst.reverse)
   }
 
   def backprop(ds: ADV): Array[DenseVector[Double]] = {

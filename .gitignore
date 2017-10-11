@@ -6,3 +6,5 @@ project/*
 *.txt.png
 .idea
 results/
+*.memo
+GLO/
