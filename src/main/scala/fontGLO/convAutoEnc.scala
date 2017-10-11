@@ -10,7 +10,6 @@ object convAE {
   import param._
 
   def main(args: Array[String]) {
-    val rand = new util.Random(0)
 
     param.setParamFromArgs(args)
     set.readConf(networkConfFile)

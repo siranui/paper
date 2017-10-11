@@ -9,7 +9,6 @@ object mk{
     title: String = "",
     saveFileName: String = "result.png"
   ) = {
-    import breeze.linalg._
     import breeze.plot._
 
     val f = Figure()
