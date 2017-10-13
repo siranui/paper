@@ -21,43 +21,43 @@ object param {
     var i = 0
     while (i < args.length) {
       args(i) match {
-        case "-z" | "--z-dimension"   =>
+        case "-z" | "--z-dimension"       =>
           zdim = args(i + 1).toInt
           i += 2
-        case "-d" | "--data-size"     =>
+        case "-d" | "--data-size"         =>
           data_size = args(i + 1).toInt
           i += 2
-        case "-e" | "--epoch"         =>
+        case "-e" | "--epoch"             =>
           epoch = args(i + 1).toInt
           i += 2
-        case "-b" | "--batch-size"    =>
+        case "-b" | "--batch-size"        =>
           batch = args(i + 1).toInt
           i += 2
-        case "-L" | "--loss-function" =>
+        case "-L" | "--loss-function"     =>
           Loss = args(i + 1)
           i += 2
-        case "--laplacian-filter-dir" =>
+        case "--laplacian-filter-dir"     =>
           LapDir = args(i + 1).toInt
           i += 2
-        case "--save-path"            =>
+        case "--save-path"                =>
           savePath = args(i + 1)
           i += 2
-        case "-n" | "--network-conf-file"  =>
+        case "-n" | "--network-conf-file" =>
           networkConfFile = args(i + 1)
           i += 2
-        case "--data-source"  =>
+        case "--data-source"              =>
           dataSource = args(i + 1)
           i += 2
-        case "--do-shuffle"           =>
+        case "--do-shuffle"               =>
           doShuffle = args(i + 1).toBoolean
           i += 2
-        case "--do-save"              =>
+        case "--do-save"                  =>
           doSave = args(i + 1).toBoolean
           i += 2
-        case "--save-time"            =>
+        case "--save-time"                =>
           saveTime = args(i + 1).toInt
           i += 2
-        case _                        =>
+        case _                            =>
           println(s"unknown option:${args(i)}")
           i += 1
       }
