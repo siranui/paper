@@ -122,6 +122,8 @@ case class Convolution(
 
     val wb = opt_bias.update(B, dB)
     B -= wb
+
+    reset()
   }
 
   def reset(): Unit = {

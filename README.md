@@ -14,8 +14,5 @@ ipython font.py {data_file} {width} {height}
 
 ## 画像にグリッド線を引く
 ```
-convert 
-  \ -size {width}x{height} {file_name}
-  \ -fx "i % {grid_width} == 0 || j % {grid_height} == 0 ? 0 : p"
-  \ {converted_file_name} 
+bin/grid.sh {image_file}
 ```
