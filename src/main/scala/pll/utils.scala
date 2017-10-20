@@ -91,8 +91,8 @@ object utils {
    * @param fn       filename. (relative path from root)
    * @param dataList data.
    */
-  def write(fn: String, dataList: List[DenseVector[Int]]): Unit = {
-    val fos = new java.io.FileOutputStream(fn, false) //true: 追記, false: 上書き
+  def write(fn: String, dataList: List[DenseVector[Int]], tf: Boolean = false): Unit = {
+    val fos = new java.io.FileOutputStream(fn, tf) //true: 追記, false: 上書き
     val osw = new java.io.OutputStreamWriter(fos, "UTF-8")
     val pw = new java.io.PrintWriter(osw)
 
@@ -110,5 +110,14 @@ object utils {
 
     result
   }
+
+
+  def oneHot(x: Int, sz: Int = 10) = {
+    assert(sz >= 1)
+    assert(x >= 0 && x < sz, s"out of the range( [0, ${sz-1}] ).")
+
+    DenseVector.tabulate(sz){i => if(i == x) 1d else 0d}
+  }
+
 
 }

@@ -5,6 +5,8 @@ lazy val root = (project in file("."))
 
 scalaVersion := "2.12.3"
 
+lazy val akkaVersion = "2.5.3"
+
 scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xlint")
 scalacOptions in (Compile, console) ~= (_.filterNot(_=="-Xlint"))
 
@@ -12,6 +14,8 @@ libraryDependencies ++= Seq(
   "org.scalanlp" %% "breeze"         % "0.13",
   "org.scalanlp" %% "breeze-natives" % "0.13",
   "org.scalanlp" %% "breeze-viz"     % "0.13",
+  "com.typesafe.akka" %% "akka-actor" % akkaVersion,
+  "com.typesafe.akka" %% "akka-testkit" % akkaVersion,
   "org.scalatest" %% "scalatest" % "3.0.3" % "test",
   "com.github.fommil.netlib" % "all" % "1.1.2" pomOnly()
 )

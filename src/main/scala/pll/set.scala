@@ -84,6 +84,18 @@ object set {
               )
               )
             }
+          case "CC"  =>
+            if (UpDown(i) == "down") {
+              net.add(new CSCConv(InW(i) + (2 * Pad(i)), Filter_ws(i), Ch(i + 1), Ch(i), Strides(i), InitWeights(i),
+                SDs(i), UpdateMethod(i), lrs(i)
+              )
+              )
+            } else {
+              net.add(new CSCConv(InW(i) * (Pad(i) + 1) + Pad(i), Filter_ws(i), Ch(i + 1), Ch(i), Strides(i),
+                InitWeights(i), SDs(i), UpdateMethod(i), lrs(i)
+              )
+              )
+            }
           case "BN" =>
             net.add(new BatchNorm(UpdateMethod(i)))
           case "R"  =>
