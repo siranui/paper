@@ -16,6 +16,7 @@ libraryDependencies ++= Seq(
   "org.scalanlp" %% "breeze-viz"     % "0.13",
   "com.typesafe.akka" %% "akka-actor" % akkaVersion,
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion,
+  "org.scala-lang.modules" %% "scala-swing" % "2.0.0-M2",
   "org.scalatest" %% "scalatest" % "3.0.3" % "test",
   "com.github.fommil.netlib" % "all" % "1.1.2" pomOnly()
 )

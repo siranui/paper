@@ -40,11 +40,18 @@ object convAE {
     val g = set.connectNetwork(new batchNet())
     g.layers.foreach(println)
 
+    val err_fig = breeze.plot.Figure()
+    var E_list:  List[Double] = Nil
+    var tE_list: List[Double] = Nil
+
     // training
     for (e <- 0 until epoch) {
 
       val train = g.batch_train(train_d, train_d, batch, err.calc_L2, grad.calc_L2_grad)
       val test = g.test(test_d, test_d, err.calc_L2)
+      E_list  = train._1 :: E_list
+      tE_list = test._1  :: tE_list
+      graph.Plot(err_fig, Seq(E_list, tE_list).map(l => DenseVector(l.reverse.toArray)),epoch,2)
       println(s"$e, E: ${train._1}, tE: ${test._1}")
 
 
