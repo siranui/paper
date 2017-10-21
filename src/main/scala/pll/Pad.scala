@@ -7,7 +7,7 @@ import breeze.linalg._
 /*
  *  param
  *  ------
- *  width : パディングする幅 (i.e. width = 1)
+ *  width : ããã£ã³ã°ããå¹ (i.e. width = 1)
  *  ud : "up"conv or "down"conv
  *
  */
@@ -46,12 +46,12 @@ case class Pad(channel: Int, width: Int, ud: String = "down") extends Layer {
   /*
    *  param
    *  ------
-   *  m : パディング対象の行列
-   *  width : パディングする幅 (i.e. width = 1)
+   *  m : ããã£ã³ã°å¯¾è±¡ã®è¡å
+   *  width : ããã£ã³ã°ããå¹ (i.e. width = 1)
    *
    *  return
    *  ------
-   *  パディングされた行列
+   *  ããã£ã³ã°ãããè¡å
    */
   def padding(m: DenseVector[Double], width: Int, method: String): DenseVector[Double] = {
     val w = math.sqrt(m.size).toInt

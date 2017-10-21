@@ -41,7 +41,7 @@ case class Convolution(
   val opt_filter: Opt = Opt.create(update_method, lr)
   val opt_bias: Opt = Opt.create(update_method, lr)
 
-  var xs: Option[List[ADVD]] = None //チャネルごとの入力を格納
+  var xs: Option[List[ADVD]] = None //Ã£ÂÂÃ£ÂÂ£Ã£ÂÂÃ£ÂÂ«Ã£ÂÂÃ£ÂÂ¨Ã£ÂÂ®Ã¥ÂÂ¥Ã¥ÂÂÃ£ÂÂÃ¦Â Â¼Ã§Â´Â
   var Ws: Option[Array[ADMD]] = None
 
   val out_width: Int = (math.floor((input_width - filter_width) / stride) + 1).toInt
@@ -61,7 +61,7 @@ case class Convolution(
 
   def forward(x: DVD): DVD = {
     val xs: ADVD = utils.divideIntoN(x, N = channel)
-    this.xs = Some(xs :: this.xs.getOrElse(Nil)) //入力を保持
+    this.xs = Some(xs :: this.xs.getOrElse(Nil)) //Ã¥ÂÂ¥Ã¥ÂÂÃ£ÂÂÃ¤Â¿ÂÃ¦ÂÂ
 
 
     val Ws = Array.ofDim[DMD](filter_set, channel)
@@ -71,7 +71,7 @@ case class Convolution(
         Ws(fs)(ch) = filter2Weight(F(fs)(ch), input_width * input_width, stride)
         Ws(fs)(ch) * xs(ch) // = W * x
       }
-      m.fold(B(fs))(_ + _) // 1つの特徴マップ
+      m.fold(B(fs))(_ + _) // 1Ã£ÂÂ¤Ã£ÂÂ®Ã§ÂÂ¹Ã¥Â¾Â´Ã£ÂÂÃ£ÂÂÃ£ÂÂ
     }
 
     this.Ws = Some(Ws)
@@ -213,7 +213,7 @@ case class Convolution(
     filters
   }
 
-  // 入力画像とフィルターは正方形に限定
+  // Ã¥ÂÂ¥Ã¥ÂÂÃ§ÂÂ»Ã¥ÂÂÃ£ÂÂ¨Ã£ÂÂÃ£ÂÂ£Ã£ÂÂ«Ã£ÂÂ¿Ã£ÂÂ¼Ã£ÂÂ¯Ã¦Â­Â£Ã¦ÂÂ¹Ã¥Â½Â¢Ã£ÂÂ«Ã©ÂÂÃ¥Â®Â
   def filter2Weight(filter: DVD, input_size: Int, stride: Int): DMD = {
     val w: Int = math.sqrt(input_size).toInt
     val h: Int = math.sqrt(filter.length).toInt

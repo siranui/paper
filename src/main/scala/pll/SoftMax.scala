@@ -5,8 +5,8 @@ class SoftMax() extends Layer{
   def forward(x:DenseVector[Double]) ={
     var esum = 0.0
     val y = DenseVector.zeros[Double](x.size)
-    //値が大きすぎてオーバーフローしないように
-    //xの最大値を分子分母から引く
+    //å¤ãå¤§ãããã¦ãªã¼ãã¼ãã­ã¼ããªãããã«
+    //xã®æå¤§å¤ãåå­åæ¯ããå¼ã
     var xmax = x(0)
 
     for(i <- 1 until x.size){

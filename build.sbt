@@ -4,6 +4,7 @@ lazy val root = (project in file("."))
   )
 
 scalaVersion := "2.12.3"
+logLevel := Level.Info
 
 lazy val akkaVersion = "2.5.3"
 

@@ -92,7 +92,7 @@ object utils {
    * @param dataList data.
    */
   def write(fn: String, dataList: List[DenseVector[Int]], tf: Boolean = false): Unit = {
-    val fos = new java.io.FileOutputStream(fn, tf) //true: 追記, false: 上書き
+    val fos = new java.io.FileOutputStream(fn, tf) //true: è¿½è¨, false: ä¸æ¸ã
     val osw = new java.io.OutputStreamWriter(fos, "UTF-8")
     val pw = new java.io.PrintWriter(osw)
 

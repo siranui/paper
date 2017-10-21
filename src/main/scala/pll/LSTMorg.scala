@@ -124,17 +124,17 @@ class LSTMorg(val xn: Int, val hn: Int, val dist: String, var n: Double, val u: 
     val dz = (Wf.t * ds) + (Wi.t * dq) + (Wc.t * dp) + (Wo.t * dm)
 
 
-    // 前の時刻へのデルタの更新
+    // Ã¥ÂÂÃ£ÂÂ®Ã¦ÂÂÃ¥ÂÂ»Ã£ÂÂ¸Ã£ÂÂ®Ã£ÂÂÃ£ÂÂ«Ã£ÂÂ¿Ã£ÂÂ®Ã¦ÂÂ´Ã¦ÂÂ°
     dN = dz(0 until hn)
     dC = dk *:* Ft.head
 
-    // 重みの更新量の更新
+    // Ã©ÂÂÃ£ÂÂ¿Ã£ÂÂ®Ã¦ÂÂ´Ã¦ÂÂ°Ã©ÂÂÃ£ÂÂ®Ã¦ÂÂ´Ã¦ÂÂ°
     dWf += ds * z.head.t
     dWi += dq * z.head.t
     dWc += dp * z.head.t
     dWo += dm * z.head.t
 
-    // バイアスの更新量の更新
+    // Ã£ÂÂÃ£ÂÂ¤Ã£ÂÂ¢Ã£ÂÂ¹Ã£ÂÂ®Ã¦ÂÂ´Ã¦ÂÂ°Ã©ÂÂÃ£ÂÂ®Ã¦ÂÂ´Ã¦ÂÂ°
     dbf += ds
     dbi += dq
     dbc += dp
