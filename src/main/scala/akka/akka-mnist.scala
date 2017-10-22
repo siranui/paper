@@ -23,11 +23,16 @@ object MNIST {
 
 
   def main(args: Array[String]) {
-    import Greeter._
-    import Printer._
     import breeze.plot._
+    import pll.actors._
+    import pll.actors.Plotter._
+    import akka.actor.ActorSystem
+
+    val actorSystem = ActorSystem("actor-system")
     val hist = Figure()
     val err_rate = Figure()
+    val histActor = actorSystem.actorOf(Plotter.props(hist), "histgram-actor")
+    val errRateActor = actorSystem.actorOf(Plotter.props(err_rate), "error-rate-actor")
 
 
     // シャッフルするかどうか
@@ -77,8 +82,10 @@ object MNIST {
             predict_value = layer.forward(predict_value)
             vecs = predict_value :: vecs
           }
-          // printerActor ! Plot2(vecs.reverse,i,2,(net.layers.size+1)/2)
-          graph.Histgram2(hist,xs=vecs.reverse,row=2)
+
+          // graph.Histgram2(hist,xs=vecs.reverse,row=2)
+          histActor ! pltInfo("hist", vecs.reverse,Array("2",""))
+
           predict_value
         } else {
           net.predict(data)
@@ -121,9 +128,11 @@ object MNIST {
       println(tmixMat)
       println()
 
-      graph.Plot(err_rate, Seq(E_list, tE_list).map(l => DenseVector(l.reverse.toArray)),epoch,2)
+      // graph.Plot(err_rate, Seq(E_list, tE_list).map(l => DenseVector(l.reverse.toArray)),epoch,2)
+      errRateActor ! pltInfo("plot", Seq(E_list, tE_list).map(l => DenseVector(l.reverse.toArray)),Array(s"$epoch","2",""))
     }
 
+    actorSystem.terminate()
     sys.exit(0)
   }
 
