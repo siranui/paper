@@ -23,9 +23,9 @@ object graph {
     }
   }
 
-  // å¤ããfigãæ¸¡ããã¨ã§ãåä¸ã®ã¦ã£ã³ãã¦ã§ã°ã©ããæç»ããããã«ãªãã
+  // 外からfigを渡すことで、同一のウィンドウでグラフを描画するようになる。
   def Histgram2(fig: Figure, xs: Seq[DenseVector[Double]], row: Int = 1, filename: String = ""): Unit = {
-    // ä»¥åã®æç»çµæããªã»ããããã
+    // 以前の描画結果をリセットする。
     fig.clear
 
     val col: Int = math.ceil(xs.size / row.toDouble).toInt
@@ -46,7 +46,7 @@ object graph {
   }
 
   def Plot(fig: Figure, xs: Seq[DenseVector[Double]], epoch: Int, row: Int = 1, filename: String = ""): Unit = {
-    // ä»¥åã®æç»çµæããªã»ããããã
+    // 以前の描画結果をリセットする。
     fig.clear
 
     val x = linspace(0,xs(0).size,xs(0).size)

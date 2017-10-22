@@ -2,10 +2,10 @@ package pll
 import breeze.linalg._
 
 class GRU(val xn:Int,val hn:Int,val dist:String,var n:Double,val u:String,val a:Double) extends Layer {
-  //xn = Ã£ÂÂÃ£ÂÂ¯Ã£ÂÂÃ£ÂÂ«Ã£ÂÂ®Ã¨Â¦ÂÃ§Â´Â Ã¦ÂÂ°
-  //hn = Ã¤Â¸Â­Ã©ÂÂÃ¥Â±Â¤Ã£ÂÂ®Ã£ÂÂÃ£ÂÂ¼Ã£ÂÂÃ¦ÂÂ°
+  //xn = Numbers of vector's elements.
+  //hn = Numbers of middle-layer's nodes.
 
-  //Ã¥ÂÂÃ£ÂÂ®Ã¥ÂÂ¥Ã¥ÂÂÃ£ÂÂÃ£ÂÂ¨Ã£ÂÂ£Ã£ÂÂ¦Ã£ÂÂÃ£ÂÂ
+  // store: pre-inputs.
   var xs = List[DenseVector[Double]]()
   var wx = xavier(hn,xn)
   var wh = xavier(hn,hn)
@@ -13,7 +13,7 @@ class GRU(val xn:Int,val hn:Int,val dist:String,var n:Double,val u:String,val a:
   var wrh = xavier(hn,hn)
   var wzx = xavier(hn,xn)
   var wzh = xavier(hn,hn)
-  //Ã©ÂÂÃ£ÂÂ¿Ã£ÂÂ®Ã¦ÂÂ´Ã¦ÂÂ°Ã©ÂÂ
+  // update amount of weight
   var wxsum = DenseMatrix.zeros[Double](wx.rows,wx.cols)
   var whsum = DenseMatrix.zeros[Double](wh.rows,wh.cols)
   var wzxsum = DenseMatrix.zeros[Double](wzx.rows,wzx.cols)
@@ -133,7 +133,7 @@ class GRU(val xn:Int,val hn:Int,val dist:String,var n:Double,val u:String,val a:
     z = List[DenseVector[Double]]()
     h1 = List[DenseVector[Double]]()
   }
-  //Ã£ÂÂ¶Ã£ÂÂÃ£ÂÂ¨Ã£ÂÂ®Ã¥ÂÂÃ¦ÂÂÃ¥ÂÂ¤
+  // init value of xavier
   def xavier(r:Int,c:Int) ={
     val x = DenseMatrix.zeros[Double](r,c)
     for(i <- 0 until r){

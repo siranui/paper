@@ -7,7 +7,7 @@ import breeze.linalg._
 /*
  *  param
  *  ------
- *  width : ããã£ã³ã°ããå¹ (i.e. width = 1)
+ *  width : width of padding (i.e. width = 1)
  *  ud : "up"conv or "down"conv
  *
  */
@@ -46,12 +46,12 @@ case class Pad(channel: Int, width: Int, ud: String = "down") extends Layer {
   /*
    *  param
    *  ------
-   *  m : ããã£ã³ã°å¯¾è±¡ã®è¡å
-   *  width : ããã£ã³ã°ããå¹ (i.e. width = 1)
+   *  m : Matrix to be padded.
+   *  width : width of padding. (i.e. width = 1)
    *
    *  return
    *  ------
-   *  ããã£ã³ã°ãããè¡å
+   *  padded matrix
    */
   def padding(m: DenseVector[Double], width: Int, method: String): DenseVector[Double] = {
     val w = math.sqrt(m.size).toInt
