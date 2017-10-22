@@ -45,7 +45,7 @@ object graph {
     }
   }
 
-  def Plot(fig: Figure, xs: Seq[DenseVector[Double]], epoch: Int, row: Int = 1, filename: String = ""): Unit = {
+  def Plot(fig: Figure, xs: Seq[DenseVector[Double]], x_max: Int, row: Int = 1, filename: String = ""): Unit = {
     // 以前の描画結果をリセットする。
     fig.clear
 
@@ -60,9 +60,46 @@ object graph {
     } {
       val plt = fig.subplot(row, col, r*col+c)
       plt += plot(x,xs(r*col+c))
-      plt.xlim = (0,epoch)
+      plt.xlim = (0,x_max)
       // plt.ylim = (0,ymax+ymax*0.1)
       plt.title = s"${r*col+c}"
+    }
+
+    // fig.refresh
+
+    if(filename != ""){
+      fig.saveas(filename)
+    }
+  }
+
+  def Image(fig: Figure, xs: Seq[DenseMatrix[Double]], row: Int = 1, filename: String = ""): Unit = {
+    // 以前の描画結果をリセットする。
+    fig.clear
+
+    def upsideDown(mat: DenseMatrix[Double]) = {
+      val buf = DenseMatrix.zeros[Double](mat.rows, mat.cols)
+      for {
+        r <- 0 until mat.rows
+        c <- 0 until mat.cols
+      } {
+        buf(r, c) = mat(mat.rows-1-r, c)
+      }
+      buf
+    }
+
+    // val ymax = max(xs.map(max(_)))
+    val col: Int = math.ceil(xs.size / row.toDouble).toInt
+
+    for {
+      r <- 0 until row
+      c <- 0 until col
+      if (r*col+c < xs.size)
+    } {
+      val plt = fig.subplot(row, col, r*col+c)
+      plt += image(upsideDown(xs(r*col+c)))
+      plt.xlim = (0,xs(r*col+c).rows)
+      plt.ylim = (0,xs(r*col+c).cols)
+      // plt.title = s"${r*col+c}"
     }
 
     // fig.refresh

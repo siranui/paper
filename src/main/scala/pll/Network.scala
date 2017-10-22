@@ -26,7 +26,7 @@ class Network() {
     tags: Seq[DenseVector[Double]],
     calcError: (DenseVector[Double], DenseVector[Double]) => Double,
     calcGrad: (DenseVector[Double], DenseVector[Double]) => DenseVector[Double],
-  ) = {
+  ): (Double, List[DenseVector[Double]]) = {
     var E = 0d
     var ys: List[DenseVector[Double]] = Nil
     for((x, t) <- (inputs zip tags)){
