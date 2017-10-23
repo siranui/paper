@@ -84,7 +84,7 @@ object MNIST {
           }
 
           // graph.Histgram2(hist,xs=vecs.reverse,row=2)
-          histActor ! pltInfo("hist", vecs.reverse,Array("2",""))
+          histActor ! Histgram(vecs.reverse, 2)
 
           predict_value
         } else {
@@ -129,7 +129,8 @@ object MNIST {
       println()
 
       // graph.Plot(err_rate, Seq(E_list, tE_list).map(l => DenseVector(l.reverse.toArray)),epoch,2)
-      errRateActor ! pltInfo("plot", Seq(E_list, tE_list).map(l => DenseVector(l.reverse.toArray)),Array(s"$epoch","2",""))
+      // errRateActor ! pltInfo("plot", Seq(E_list, tE_list).map(l => DenseVector(l.reverse.toArray)),Array(s"$epoch","2",""))
+      errRateActor ! Line(Seq(E_list, tE_list).map(l => DenseVector(l.reverse.toArray)),epoch,2)
     }
 
     actorSystem.terminate()

@@ -45,7 +45,7 @@ object graph {
     }
   }
 
-  def Plot(fig: Figure, xs: Seq[DenseVector[Double]], x_max: Int, row: Int = 1, filename: String = ""): Unit = {
+  def Line(fig: Figure, xs: Seq[DenseVector[Double]], x_max: Int, row: Int = 1, filename: String = ""): Unit = {
     // 以前の描画結果をリセットする。
     fig.clear
 

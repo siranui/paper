@@ -8,6 +8,8 @@ import scala.language.postfixOps
 object convAE {
 
   import param._
+  import pll.actors._
+  import pll.actors.Monitor._
 
   val rand = new util.Random(0)
 
@@ -40,8 +42,12 @@ object convAE {
     val g = set.connectNetwork(new batchNet())
     g.layers.foreach(println)
 
+    // for monitoring.
+    val system = akka.actor.ActorSystem("system")
     val err_fig = breeze.plot.Figure()
     val img_fig = breeze.plot.Figure()
+    val err_actor = system.actorOf(Monitor.props(err_fig), "error-actor")
+    val img_actor = system.actorOf(Monitor.props(img_fig), "image-actor")
     var E_list:  List[Double] = Nil
     var tE_list: List[Double] = Nil
 
@@ -55,7 +61,8 @@ object convAE {
       tE_list = test._1  :: tE_list
 
       // plotting change of error.
-      graph.Plot(err_fig, Seq(E_list, tE_list).map(l => DenseVector(l.reverse.toArray)),epoch,2)
+      // graph.Line(err_fig, Seq(E_list, tE_list).map(l => DenseVector(l.reverse.toArray)),epoch,2)
+      err_actor ! Line(xs = Seq(E_list, tE_list).map(l => DenseVector(l.reverse.toArray)), x_max = epoch, row = 2)
 
       println(s"$e, E: ${train._1}, tE: ${test._1}")
 
@@ -63,7 +70,7 @@ object convAE {
       val tr = train._2.flatten.take(50).map{ m =>
         reshape(m, 32, 32).t * 256d
       }
-      graph.Image(img_fig, tr, 5)
+      img_actor ! Image(xs = train._2.flatten.take(50), row = 5)
       // graph.Image(img_fig, test._2.map(m=>reshape(m,32,32)), 5)
 
 
@@ -108,6 +115,8 @@ object convAE {
     }
 
     println(args.toList)
+
+    system.terminate()
   }
 
 }

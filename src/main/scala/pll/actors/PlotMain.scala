@@ -18,11 +18,11 @@ object Main extends App {
     val y = DenseVector.rand(100) * 100d
     val z = DenseVector.rand(100) * 100d
 
-    actor1 ! pltInfo("hist",Seq(w,x,y,z),Array("2",""))
+    actor1 ! Histgram(Seq(w,x,y,z),2)
     Thread.sleep(300)
-    actor1 ! pltInfo("plot",Seq(w,x,y,z),Array("100","2",""))
+    actor1 ! Line(Seq(w,x,y,z),100,2)
     Thread.sleep(300)
-    actor1 ! pltInfo("image",Seq(w,x,y,z),Array("2",""))
+    actor1 ! Image(Seq(w,x,y,z),2)
 
     Thread.sleep(300)
   }
