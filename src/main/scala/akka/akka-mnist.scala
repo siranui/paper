@@ -25,14 +25,14 @@ object MNIST {
   def main(args: Array[String]) {
     import breeze.plot._
     import pll.actors._
-    import pll.actors.Plotter._
+    import pll.actors.Monitor._
     import akka.actor.ActorSystem
 
     val actorSystem = ActorSystem("actor-system")
     val hist = Figure()
     val err_rate = Figure()
-    val histActor = actorSystem.actorOf(Plotter.props(hist), "histgram-actor")
-    val errRateActor = actorSystem.actorOf(Plotter.props(err_rate), "error-rate-actor")
+    val histActor = actorSystem.actorOf(Monitor.props(hist), "histgram-actor")
+    val errRateActor = actorSystem.actorOf(Monitor.props(err_rate), "error-rate-actor")
 
 
     // シャッフルするかどうか

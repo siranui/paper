@@ -5,12 +5,12 @@ import breeze.linalg._
 import breeze.plot.Figure
 
 object Main extends App {
-  import Plotter._
+  import Monitor._
   val system = ActorSystem("system")
 
   val fig1 = Figure()
 
-  val actor1 = system.actorOf(Plotter.props(fig1),"actor1")
+  val actor1 = system.actorOf(Monitor.props(fig1),"actor1")
 
   for(_ <- 0 until 10){
     val w = DenseVector.rand(100) * 100d

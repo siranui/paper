@@ -5,14 +5,14 @@ import akka.actor.{Actor, ActorLogging, Props}
 import breeze.linalg._
 import breeze.plot.Figure
 
-object Plotter {
-  def props(fig: Figure) = Props(classOf[Plottor], fig)
+object Monitor {
+  def props(fig: Figure) = Props(classOf[Monitor], fig)
   case class pltInfo(val p: String, xs: Seq[DenseVector[Double]], args: Array[String])
 
 }
 
-class Plottor(fig: Figure) extends Actor with ActorLogging {
-  import Plotter._
+class Monitor(fig: Figure) extends Actor with ActorLogging {
+  import Monitor._
 
   var count = 0
   def receive = {
