@@ -78,12 +78,7 @@ object graph {
 
     def upsideDown(mat: DenseMatrix[Double]) = {
       val buf = DenseMatrix.zeros[Double](mat.rows, mat.cols)
-      for {
-        r <- 0 until mat.rows
-        c <- 0 until mat.cols
-      } {
-        buf(r, c) = mat(mat.rows-1-r, c)
-      }
+      (0 until mat.rows).foreach( r => buf(r, ::) := mat(mat.rows-1-r, ::) )
       buf
     }
 

@@ -96,6 +96,11 @@ object set {
               )
               )
             }
+          case "A"  =>
+            println(s"Affine: $i")
+            println(InW(i)*InW(i)*Ch(i))
+            println(InW(i+1)*InW(i+1)*Ch(i+1))
+            net.add(new Affine(InW(i)*InW(i)*Ch(i), InW(i+1)*InW(i+1)*Ch(i+1), InitWeights(i), SDs(i), UpdateMethod(i), lrs(i)))
           case "BN" =>
             net.add(new BatchNorm(UpdateMethod(i)))
           case "R"  =>

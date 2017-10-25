@@ -116,7 +116,13 @@ object convAE {
 
     println(args.toList)
 
+    system.stop(err_actor)
+    system.stop(img_actor)
+
     system.terminate()
+
+    Thread.sleep(1000)
+    System.exit(0)
   }
 
 }
