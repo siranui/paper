@@ -22,7 +22,7 @@ object Main extends App {
     Thread.sleep(300)
     actor1 ! Line(Seq(w,x,y,z),100,2)
     Thread.sleep(300)
-    actor1 ! Image(Seq(w,x,y,z),2)
+    actor1 ! Image_v(Seq(w,x,y,z),2)
 
     Thread.sleep(300)
   }

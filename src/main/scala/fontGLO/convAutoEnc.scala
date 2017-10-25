@@ -44,10 +44,12 @@ object convAE {
 
     // for monitoring.
     val system = akka.actor.ActorSystem("system")
-    val err_fig = breeze.plot.Figure()
-    val img_fig = breeze.plot.Figure()
+    val err_fig = breeze.plot.Figure("error-figure")
+    val img_fig = breeze.plot.Figure("train-image-figure")
+    val test_img_fig = breeze.plot.Figure("test-image-figure")
     val err_actor = system.actorOf(Monitor.props(err_fig), "error-actor")
-    val img_actor = system.actorOf(Monitor.props(img_fig), "image-actor")
+    val img_actor = system.actorOf(Monitor.props(img_fig), "train-image-actor")
+    val test_img_actor = system.actorOf(Monitor.props(test_img_fig), "test_image-actor")
     var E_list:  List[Double] = Nil
     var tE_list: List[Double] = Nil
 
@@ -67,11 +69,11 @@ object convAE {
       println(s"$e, E: ${train._1}, tE: ${test._1}")
 
       // visualize generated image
-      val tr = train._2.flatten.take(50).map{ m =>
-        reshape(m, 32, 32).t * 256d
-      }
-      img_actor ! Image(xs = train._2.flatten.take(50), row = 5)
-      // graph.Image(img_fig, test._2.map(m=>reshape(m,32,32)), 5)
+      // val tr = train._2.flatten.take(50).map{ m =>
+      //   reshape(m, 32, 32).t * 256d
+      // }
+      img_actor ! Image_v(xs = train._2.flatten.take(50), row = 5)
+      test_img_actor ! Image_v(xs = test._2.take(50), row = 5)
 
 
       // save
