@@ -8,13 +8,19 @@ trait Layer {
   def forward(x: DenseVector[Double]): DenseVector[Double]
 
   def forwards(x: Array[DenseVector[Double]]): Array[DenseVector[Double]] = {
-    x.map(forward)
+    // x.map(forward)
+    (for(x_i <- x) yield {forward(x_i)}).toArray
   }
 
   def backward(d: DenseVector[Double]): DenseVector[Double]
 
   def backwards(d: Array[DenseVector[Double]]): Array[DenseVector[Double]] = {
-    d.map(backward)
+    // d.map(backward)
+    var buf = List[DenseVector[Double]]()
+    for(d_i <- d.reverse) {
+       buf = backward(d_i) :: buf
+    }
+    buf.toArray
   }
 
   def update(): Unit

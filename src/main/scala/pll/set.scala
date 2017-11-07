@@ -96,6 +96,18 @@ object set {
               )
               )
             }
+          case "KC"  =>
+            if (UpDown(i) == "down") {
+              net.add(new k2rConv(InW(i) + (2 * Pad(i)), Filter_ws(i), Ch(i + 1), Ch(i), Strides(i), InitWeights(i),
+                SDs(i), UpdateMethod(i), lrs(i)
+              )
+              )
+            } else {
+              net.add(new k2rConv(InW(i) * (Pad(i) + 1) + Pad(i), Filter_ws(i), Ch(i + 1), Ch(i), Strides(i),
+                InitWeights(i), SDs(i), UpdateMethod(i), lrs(i)
+              )
+              )
+            }
           case "A"  =>
             println(s"Affine: $i")
             println(InW(i)*InW(i)*Ch(i))

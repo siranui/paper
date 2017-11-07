@@ -143,11 +143,13 @@ class batchNet() extends Network {
   }
 
   def backprop(ds: ADV): Array[DenseVector[Double]] = {
-    var tmp = ds.reverse
+    // var tmp = ds.reverse
+    var tmp = ds
     val rLayers = layers.reverse
     for (rLayer <- rLayers) {
       tmp = rLayer.backwards(tmp)
     }
+    // tmp.reverse
     tmp.reverse
   }
 

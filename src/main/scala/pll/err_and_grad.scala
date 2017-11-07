@@ -21,13 +21,13 @@ object err {
   }
 
   def calc_cross_entropy_loss(y: DenseVector[Double], t: DenseVector[Double]): Double = {
-    -sum(t *:* breeze.numerics.log(y))
+    -sum(t *:* breeze.numerics.log(y + 1e-323))
   }
 
   def calc_cross_entropy_loss(ys: Array[DenseVector[Double]], ts: Array[DenseVector[Double]]): Double = {
     var L = 0d
     for ((y, t) <- ys zip ts) {
-      L += -sum(t *:* breeze.numerics.log(y))
+      L += -sum(t *:* breeze.numerics.log(y + 1e-323))
     }
     L
   }

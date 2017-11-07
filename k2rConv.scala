@@ -1,7 +1,7 @@
-// package pll
+package pll
 
 
-import pll._
+//import pll._
 import breeze.linalg._
 
 /** convolution class.
@@ -88,11 +88,16 @@ case class k2rConv(
     fx + B.reduce(DenseVector.vertcat(_, _))
   }
 
+
+
   def backward(d: DVD): DVD = {
+
     val ds: ADVD = utils.divideIntoN(d, N = filter_set)
     val dmat = ds.map{ m =>
       padRight(reshape(m, out_width, out_width), (input_width,   input_width), 0d).reshape(1,input_width * input_width)
     }.reduceLeft(DenseMatrix.vertcat(_,_))
+
+
 
     // update: bias's update value
     assert(dB.length == ds.length)
@@ -101,34 +106,49 @@ case class k2rConv(
       dB(i) += ds(i)
     }
 
+
+
+    // update: Filter's update value
     assert(this.xs.nonEmpty)
     val xs = this.xs.get.head
     this.xs = Some(this.xs.get.tail)
     val xmat = xs.map(_.toDenseMatrix).reduceLeft(DenseMatrix.vertcat(_,_))
+    val xT = xmat.t
+
+    val dw_tmp = (for( (idx, num) <- ((0 until filter_width*filter_width) zip (for(i <- 0 until input_width*input_width if(i % input_width < filter_width)) yield i)) ) yield {
+       val tmp = dmat * rotate.up( num, xT )
+       tmp.t.reshape(filter_set * channel ,1)
+    }).reduce(DenseMatrix.horzcat(_, _))
+
+    for {i <- 0 until filter_set; j <- 0 until channel} {
+      dF(i)(j) += dw_tmp(i*channel+j, ::).t
+    }
+
+
+
+    // calculate: return value( Weight^T * dOut )
     val Fmat =
       F.map(_.map(_.toDenseMatrix).reduce(DenseMatrix.vertcat(_,_)))
         .reduce(DenseMatrix.vertcat(_,_))
         .reshape(channel, filter_width*filter_width*filter_set).t
 
-    // println(s"Fmat:\n$Fmat\n")
-    // println(s"dmat:\n$dmat\n")
-    // (Fmat * dmat).t.toDenseVector
-    val res = Fmat * xmat
 
-    val buf = DenseMatrix.zeros[Double](filter_set, input_width*input_width)
+    val FmatT = (for(i <- 0 until filter_width * filter_width) yield {
+       Fmat(i * filter_set until i * filter_set + filter_set, ::).t
+    }).reduce(DenseMatrix.vertcat(_, _))
+
+
+    val dx_pre_shift = FmatT * dmat
+
+    val dx = DenseMatrix.zeros[Double](channel, input_width*input_width)
     ((0 until filter_width*filter_width) zip (for(i <- 0 until input_width*input_width if(i % input_width < filter_width)) yield i)).foreach{ case (idx,num) =>
-      buf +=  rotate.left(
+      dx +=  rotate.right(
         num,
-        res(idx*filter_set until idx*filter_set+filter_set,::)
+        dx_pre_shift(idx*channel until idx*channel+channel,::)
       )
     }
 
-    val fx = buf(*,::).map{ i =>
-      val j = reshape(i.t, input_width, input_width)
-      j(0 until out_width, 0 until out_width).t.toDenseVector
-    }.t.toDenseVector
-    fx
-    buf.t.toDenseVector
+    dx.t.toDenseVector
   }
 
   def update(): Unit = {
@@ -233,57 +253,6 @@ case class k2rConv(
     filters
   }
 
-  // Allow only "SQUARE"" images and filters.
-  def filter2Weight(filter: DVD, input_size: Int, stride: Int): DMD = {
-    val w: Int = math.sqrt(input_size).toInt
-    val h: Int = math.sqrt(filter.length).toInt
-    val out_w: Int = (math.floor((w - h) / stride) + 1).toInt
-
-    // create Weight matrix
-    val W = DenseMatrix.zeros[Double](math.pow(out_w, 2).toInt, math.pow(w, 2).toInt)
-    for {
-      i <- 0 until out_w
-      j <- 0 until out_w
-      p <- 0 until h
-      q <- 0 until h
-    } {
-      val W_row = i * out_w + j
-      val W_col = (i * stride + p) * w + stride * j + q
-      W(W_row, W_col) = filter(p * h + q)
-    }
-
-    W
-  }
-
-  /*
-   * filters[ch, height*width]
-   */
-  def filter2Weight(filters: ADVD, input_size: Int, stride: Int = 1): DMD = {
-    val Ws = filters.map(i => filter2Weight(i, input_size, stride))
-    Ws.reduceLeft(DenseMatrix.horzcat(_, _))
-  }
-
-  def Weight2filter(dmat: DMD, filter_size: Int, stride: Int = 1): DVD = {
-    val h = math.sqrt(filter_size).toInt
-    val out_w = math.sqrt(dmat.rows).toInt
-    val w = (out_w - 1) * stride + h
-
-    val Filter = DenseVector.zeros[Double](filter_size)
-    for {
-      i <- 0 until out_w
-      j <- 0 until out_w
-      p <- 0 until h
-      q <- 0 until h
-    } {
-      val d_row = i * out_w + j
-      val d_col = (i * stride + p) * w + stride * j + q
-      Filter(p * h + q) += dmat(d_row, d_col)
-    }
-
-    Filter
-  }
-
-
   def copy_F(): Array[ADVD] = F.map(_.map(_.copy))
 
   def copy_B(): ADVD = B.map(_.copy)
@@ -299,33 +268,68 @@ case class k2rConv(
 
 }
 
+
+
+
+object rotate {
+  import breeze.linalg._
+  def left[T](n:Int, s:Seq[T])  = s.drop(n%s.size) ++ s.take(n%s.size)
+  def right[T](n:Int, s:Seq[T]) = s.takeRight(n%s.size) ++ s.dropRight(n%s.size)
+
+  def left(n:Int, v:DenseVector[Double])  = DenseVector.vertcat(v(n%v.size until v.size), v(0 until n%v.size))
+  def right(n:Int, v:DenseVector[Double]) = DenseVector.vertcat(v(v.size - n%v.size until v.size), v(0 until v.size - n%v.size))
+
+  def left(n:Int, m:DenseMatrix[Double])  = DenseMatrix.horzcat(m(::, n%m.cols until m.cols), m(::, 0 until n%m.cols))
+  def right(n:Int, m:DenseMatrix[Double]) = DenseMatrix.horzcat(m(::, m.cols - n%m.cols until m.cols), m(::, 0 until m.cols - n%m.cols))
+  def up(n:Int, m:DenseMatrix[Double])    = DenseMatrix.vertcat(m(n%m.rows until m.rows, ::), m(0 until n%m.rows, ::))
+  def down(n:Int, m:DenseMatrix[Double])  = DenseMatrix.vertcat(m(m.rows - n%m.rows until m.rows, ::), m(0 until m.rows - n%m.rows, ::))
+}
+
+
+
+
+
 // test
 object k2rConvTest {
 
   def o(n:Int) = DenseVector.ones[Double](n)
   def r(n:Int) = convert(DenseVector.range(0, n), Double)
-  val (f, x, d) = (r(4), r(9)+ 1d, r(4))
+  val in_w = 3
+  val fil_w = 2
+  val out_w = in_w - fil_w + 1
+  val f_set = 1
+  val ch = 1
+  val (f, x, d) = (r(fil_w*fil_w), r(in_w*in_w*ch)+ 1d, r(out_w*out_w*f_set))
 
   def k2r() = {
-    val k2r = k2rConv(3,2)
+    val k2r = k2rConv(in_w,fil_w,f_set,ch)
 
-    k2r.F = Array(Array(f))
+    k2r.F = k2r.F.map(_.map(_ => f))
 
-    println("forward:")
-    println(k2r.forward(x))
-    println("backward:")
-    println(k2r.backward(d))
+    // println("forward:")
+    val fw = k2r.forward(x)
+    // println(fw)
+    // println("backward:")
+    val bw = k2r.backward(d)
+    // println(bw)
+    // println("dF:")
+    // println(k2r.dF.flatten.reduce(DenseVector.vertcat(_,_)))
   }
 
   def normal() = {
-    val conv = pll.Convolution(3,2)
+    val conv = pll.Convolution(in_w,fil_w,f_set,ch)
 
-    conv.F = Array(Array(f))
+    // conv.F = Array(Array(f,f),Array(f,f),Array(f,f))
+    conv.F = conv.F.map(_.map(_ => f))
 
-    println("forward:")
-    println(conv.forward(x))
-    println("backward:")
-    println(conv.backward(d))
+    // println("forward:")
+    val fw = conv.forward(x)
+    // println(fw)
+    // println("backward:")
+    val bw = conv.backward(d)
+    // println(bw)
+    // println("dF:")
+    // println(conv.dF.flatten.reduce(DenseVector.vertcat(_,_)))
 
   }
 
@@ -333,8 +337,49 @@ object k2rConvTest {
 
     if(args.size != 0){
       args(0) match {
-        case "k2r"        => k2r()
-        case "normal" | _ => normal()
+        case "k2r"    => utils.printExcutingTime(k2r())
+        case "normal" => utils.printExcutingTime(normal())
+        case _ =>
+         println("\nnormal:")
+         utils.printExcutingTime(normal())
+         println("\nkn2row:")
+         utils.printExcutingTime(k2r())
+         println("\nnormal:")
+         utils.printExcutingTime(normal())
+         println("\nkn2row:")
+         utils.printExcutingTime(k2r())
+         println("\nnormal:")
+         utils.printExcutingTime(normal())
+         println("\nkn2row:")
+         utils.printExcutingTime(k2r())
+         println("\nnormal:")
+         utils.printExcutingTime(normal())
+         println("\nkn2row:")
+         utils.printExcutingTime(k2r())
+         println("\nnormal:")
+         utils.printExcutingTime(normal())
+         println("\nkn2row:")
+         utils.printExcutingTime(k2r())
+         println("\nnormal:")
+         utils.printExcutingTime(normal())
+         println("\nkn2row:")
+         utils.printExcutingTime(k2r())
+         println("\nnormal:")
+         utils.printExcutingTime(normal())
+         println("\nkn2row:")
+         utils.printExcutingTime(k2r())
+         println("\nnormal:")
+         utils.printExcutingTime(normal())
+         println("\nkn2row:")
+         utils.printExcutingTime(k2r())
+         println("\nnormal:")
+         utils.printExcutingTime(normal())
+         println("\nkn2row:")
+         utils.printExcutingTime(k2r())
+         println("\nnormal:")
+         utils.printExcutingTime(normal())
+         println("\nkn2row:")
+         utils.printExcutingTime(k2r())
       }
     } else {
       normal()
@@ -343,3 +388,5 @@ object k2rConvTest {
   }
 }
 
+// normal 568 746 1444 385 634  879 364  851 1028 890
+// k2r    658 825 946  429 1201 869 1166 825 1024 1028
