@@ -9,3 +9,4 @@ results/
 *.memo
 GLO/
 .history
+word2vec/

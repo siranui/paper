@@ -92,7 +92,7 @@ object utils {
    * @param dataList data.
    */
   def write(fn: String, dataList: List[DenseVector[Int]], tf: Boolean = false): Unit = {
-    val fos = new java.io.FileOutputStream(fn, tf) //true: è¿½è¨, false: ä¸æ¸ã
+    val fos = new java.io.FileOutputStream(fn, tf) //true: 追記, false: 上書き
     val osw = new java.io.OutputStreamWriter(fos, "UTF-8")
     val pw = new java.io.PrintWriter(osw)
 
@@ -117,6 +117,13 @@ object utils {
     assert(x >= 0 && x < sz, s"out of the range( [0, ${sz-1}] ).")
 
     DenseVector.tabulate(sz){i => if(i == x) 1d else 0d}
+  }
+
+  def oneHot2(x: Int, sz: Int = 10) = {
+    assert(sz >= 1)
+    assert(x >= 0 && x < sz, s"out of the range( [0, ${sz-1}] ).")
+
+    SparseVector(sz)((x,1d))
   }
 
 
