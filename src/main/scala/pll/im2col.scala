@@ -34,10 +34,10 @@ object Im2Col {
   }
 
 
-  case class Shape4(B: Int, C: Int, H: Int, W: Int)
+  case class Shape(N: Int, C: Int, H: Int, W: Int)
 
-  def col2im(col: DM, x_shape: Shape4, fil_h: Int, fil_w: Int, stride: Int = 1): Array[Array[DM]] = {
-    val batch = x_shape.B
+  def col2im(col: DM, x_shape: Shape, fil_h: Int, fil_w: Int, stride: Int = 1): Array[Array[DM]] = {
+    val batch = x_shape.N
     val ch = x_shape.C
     val in_h= x_shape.H
     val in_w = x_shape.W
@@ -117,7 +117,6 @@ case class i2cConv(
   // bias
   var B: DVD = DenseVector.zeros[Double](filter_set)
 
-  // var dF: Array[ADVD] = F.map(_.map(_ => DenseVector.zeros[Double](filter_width * filter_width)))
   var dW: DMD = DenseMatrix.zeros[Double](filter_set, filter_width*filter_width*channel)
   var dB: DVD = DenseVector.zeros[Double](filter_set)
 
@@ -164,35 +163,6 @@ case class i2cConv(
   }
 
   def backward(d: DVD): DVD = {
-    // val dmap: ADVD = utils.divideIntoN(d, N = filter_set)
-    // val dMat = dmap.map(_.toDenseMatrix).reduce(DenseMatrix.vertcat(_,_))
-
-    // assert(dB.length == dmap.length)
-    // for (i <- dB.indices) {
-    //   assert(dB(i).size == dmap(i).size)
-    //   dB(i) += dmap(i)
-    // }
-
-    // assert(this.xs.nonEmpty)
-    // val xs = this.xs.get.head
-    // this.xs = Some(this.xs.get.tail)
-    // // dWs(filter_set, channel)
-    // val dWs: Array[ADMD] = dmap.map(d => xs.map(x => d * x.t))
-
-    // for {i <- dWs.indices; j <- dWs(i).indices} {
-    //   dF(i)(j) += Weight2filter(dWs(i)(j), filter_width * filter_width, stride)
-    // }
-
-
-    // val Ws = this.Ws.get
-    // val dx: DVD = (for {fs <- 0 until filter_set} yield {
-    //   (for {ch <- 0 until channel} yield {
-    //     val tmp: DVD = (dmap(fs).t * Ws(fs)(ch)).t
-    //     reshape(tmp.t, input_width, input_width).t.toDenseVector
-    //   }).reduce(DenseVector.vertcat(_, _))
-    // }).reduce(_ + _)
-
-    // dx
 
     val dmap: ADVD = utils.divideIntoN(d, N = filter_set)
     val dMat: DMD = dmap.map(_.toDenseMatrix).reduce(DenseMatrix.vertcat(_,_))
@@ -203,7 +173,7 @@ case class i2cConv(
     dW += dMat * col_X.t
 
     val col_W = this.col_W.get
-    val x_shape = Shape4(1, channel, input_width, input_width)
+    val x_shape = Shape(1, channel, input_width, input_width)
     val dxMat = col_W.t * dMat
     val dx = col2im(dxMat, x_shape, filter_width, filter_width, stride)
     val dxVec = dx.map(c => c.map(_.t.toDenseVector).reduce(DenseVector.vertcat(_,_))).reduce(DenseVector.vertcat(_,_))
@@ -211,35 +181,6 @@ case class i2cConv(
   }
 
   def backward(d: ADVD): ADVD = {
-    // val dmap: ADVD = utils.divideIntoN(d, N = filter_set)
-    // val dMat = dmap.map(_.toDenseMatrix).reduce(DenseMatrix.vertcat(_,_))
-
-    // assert(dB.length == dmap.length)
-    // for (i <- dB.indices) {
-    //   assert(dB(i).size == dmap(i).size)
-    //   dB(i) += dmap(i)
-    // }
-
-    // assert(this.xs.nonEmpty)
-    // val xs = this.xs.get.head
-    // this.xs = Some(this.xs.get.tail)
-    // // dWs(filter_set, channel)
-    // val dWs: Array[ADMD] = dmap.map(d => xs.map(x => d * x.t))
-
-    // for {i <- dWs.indices; j <- dWs(i).indices} {
-    //   dF(i)(j) += Weight2filter(dWs(i)(j), filter_width * filter_width, stride)
-    // }
-
-
-    // val Ws = this.Ws.get
-    // val dx: DVD = (for {fs <- 0 until filter_set} yield {
-    //   (for {ch <- 0 until channel} yield {
-    //     val tmp: DVD = (dmap(fs).t * Ws(fs)(ch)).t
-    //     reshape(tmp.t, input_width, input_width).t.toDenseVector
-    //   }).reduce(DenseVector.vertcat(_, _))
-    // }).reduce(_ + _)
-
-    // dx
 
     val dmap: Array[ADVD] = d.map(b => utils.divideIntoN(b, N = filter_set))
     val dMat: DMD = dmap.map(_.map(_.toDenseMatrix).reduce(DenseMatrix.vertcat(_,_))).reduce(DenseMatrix.horzcat(_, _))
@@ -250,18 +191,17 @@ case class i2cConv(
     dW += dMat * col_X.t
 
     val col_W = this.col_W.get
-    val x_shape = Shape4(d.size, channel, input_width, input_width)
+    val x_shape = Shape(d.size, channel, input_width, input_width)
     val dxMat = col_W.t * dMat
     val dx: Array[ADMD] = col2im(dxMat, x_shape, filter_width, filter_width, stride)
-    val dxVec: ADVD = dx.map(c => c.map(_.t.toDenseVector).reduce(DenseVector.vertcat(_,_)))//.reduce(DenseVector.vertcat(_,_))
-    dxVec
+    val dxArrVec: ADVD = dx.map(c => c.map(_.t.toDenseVector).reduce(DenseVector.vertcat(_,_)))//.reduce(DenseVector.vertcat(_,_))
+    dxArrVec
   }
 
   def update(): Unit = {
     val wf: Array[DMD] = opt_filter.update(Array(col_W.get), Array(dW))
     println(s"debug: F(${F.size}, ${F(0).size}, ${F(0)(0).size})")
     println(s"debug: wf(${wf.size}, ${wf(0).rows}, ${wf(0).cols})")
-    // val wf = opt_filter.update(F.flatten, dF.flatten)
     for {
       i <- F.indices
       j <- F(i).indices
@@ -291,8 +231,6 @@ case class i2cConv(
     pw.write(flatF.mkString(","))
     pw.write("\n")
 
-    // val flatB = B.flatMap(_.toArray)
-    // pw.write(flatB.mkString(","))
     pw.write(B.toArray.mkString(","))
     pw.write("\n")
 
@@ -314,9 +252,7 @@ case class i2cConv(
     // set 'B' parameter
     for {
       fs <- 0 until B.length
-      // v <- F(fs).indices
     } {
-      // B(fs)(v) = str(1)(fs * B(fs).size + v)
       B(fs) = str(1)(fs)
     }
   }
@@ -337,11 +273,8 @@ case class i2cConv(
     // set 'B' parameter
     for {
       fs <- 0 until B.length
-      // fs <- B.indices
-      // v <- F(fs).indices
     } {
       B(fs) = blst(fs)
-      // B(fs)(v) = blst(fs * B(fs).size + v)
     }
 
     data.drop(2)
@@ -365,56 +298,6 @@ case class i2cConv(
 
     filters
   }
-
-  // // Allow only "SQUARE"" images and filters.
-  // def filter2Weight(filter: DVD, input_size: Int, stride: Int): DMD = {
-  //   val w: Int = math.sqrt(input_size).toInt
-  //   val h: Int = math.sqrt(filter.length).toInt
-  //   val out_w: Int = (math.floor((w - h) / stride) + 1).toInt
-
-  //   // create Weight matrix
-  //   val W = DenseMatrix.zeros[Double](math.pow(out_w, 2).toInt, math.pow(w, 2).toInt)
-  //   for {
-  //     i <- 0 until out_w
-  //     j <- 0 until out_w
-  //     p <- 0 until h
-  //     q <- 0 until h
-  //   } {
-  //     val W_row = i * out_w + j
-  //     val W_col = (i * stride + p) * w + stride * j + q
-  //     W(W_row, W_col) = filter(p * h + q)
-  //   }
-
-  //   W
-  // }
-
-  // /*
-  //  * filters[ch, height*width]
-  //  */
-  // def filter2Weight(filters: ADVD, input_size: Int, stride: Int = 1): DMD = {
-  //   val Ws = filters.map(i => filter2Weight(i, input_size, stride))
-  //   Ws.reduceLeft(DenseMatrix.horzcat(_, _))
-  // }
-
-  // def Weight2filter(dmat: DMD, filter_size: Int, stride: Int = 1): DVD = {
-  //   val h = math.sqrt(filter_size).toInt
-  //   val out_w = math.sqrt(dmat.rows).toInt
-  //   val w = (out_w - 1) * stride + h
-
-  //   val Filter = DenseVector.zeros[Double](filter_size)
-  //   for {
-  //     i <- 0 until out_w
-  //     j <- 0 until out_w
-  //     p <- 0 until h
-  //     q <- 0 until h
-  //   } {
-  //     val d_row = i * out_w + j
-  //     val d_col = (i * stride + p) * w + stride * j + q
-  //     Filter(p * h + q) += dmat(d_row, d_col)
-  //   }
-
-  //   Filter
-  // }
 
 
   def copy_F(): Array[ADVD] = F.map(_.map(_.copy))
@@ -448,7 +331,6 @@ object i2cConvTest {
     val update_method: String = "AdaGrad"
     val lr: Double = 0.01
     val conv = i2cConv(input_width, fH, fS, ch, stride, distr, SD, update_method, lr)
-    // val img = DenseVector.rand(ch * input_width * input_width)
     val img = DenseVector.range(0, ch * input_width * input_width).map(_.toDouble)
     val conv1 = conv.forward(img)
     println(conv1)

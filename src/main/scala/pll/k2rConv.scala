@@ -294,12 +294,32 @@ object k2rConvTest {
 
   def o(n:Int) = DenseVector.ones[Double](n)
   def r(n:Int) = convert(DenseVector.range(0, n), Double)
-  val in_w = 3
-  val fil_w = 2
+  val in_w = 32
+  val fil_w = 7
+  val stride = 1
+  val out_w_s = utils.out_width(in_w, fil_w, stride)
   val out_w = in_w - fil_w + 1
-  val f_set = 1
-  val ch = 1
-  val (f, x, d) = (r(fil_w*fil_w), r(in_w*in_w*ch)+ 1d, r(out_w*out_w*f_set))
+  val f_set = 8
+  val ch = 6
+  val (f, x, d, ds) = (r(fil_w*fil_w), r(in_w*in_w*ch)+ 1d, r(out_w*out_w*f_set), r(out_w_s*out_w_s*f_set))
+
+
+  def normal() = {
+    val conv = pll.Convolution(in_w,fil_w,f_set,ch,stride)
+
+    // conv.F = Array(Array(f,f),Array(f,f),Array(f,f))
+    conv.F = conv.F.map(_.map(_ => f))
+
+    // println("forward:")
+    val fw = conv.forward(x)
+    // println(fw)
+    // println("backward:")
+    val bw = conv.backward(ds)
+    // println(bw)
+    // println("dF:")
+    // println(conv.dF.flatten.reduce(DenseVector.vertcat(_,_)))
+
+  }
 
   def k2r() = {
     val k2r = k2rConv(in_w,fil_w,f_set,ch)
@@ -316,70 +336,113 @@ object k2rConvTest {
     // println(k2r.dF.flatten.reduce(DenseVector.vertcat(_,_)))
   }
 
-  def normal() = {
-    val conv = pll.Convolution(in_w,fil_w,f_set,ch)
+  def i2c() = {
+    val i2c = i2cConv(in_w,fil_w,f_set,ch,stride)
 
-    // conv.F = Array(Array(f,f),Array(f,f),Array(f,f))
-    conv.F = conv.F.map(_.map(_ => f))
+    i2c.F = i2c.F.map(_.map(_ => f))
 
     // println("forward:")
-    val fw = conv.forward(x)
+    val fw = i2c.forward(x)
     // println(fw)
     // println("backward:")
-    val bw = conv.backward(d)
+    val bw = i2c.backward(ds)
     // println(bw)
     // println("dF:")
-    // println(conv.dF.flatten.reduce(DenseVector.vertcat(_,_)))
-
+    // println(k2r.dF.flatten.reduce(DenseVector.vertcat(_,_)))
   }
 
   def main(args: Array[String]) {
 
     if(args.size != 0){
       args(0) match {
-        case "k2r"    => utils.printExcutingTime(k2r())
         case "normal" => utils.printExcutingTime(normal())
+        case "k2r"    => utils.printExcutingTime(k2r())
+        case "i2c"    => utils.printExcutingTime(i2c())
         case _ =>
-         println("\nnormal:")
+         println("normal:")
          utils.printExcutingTime(normal())
-         println("\nkn2row:")
+         println("kn2row:")
          utils.printExcutingTime(k2r())
-         println("\nnormal:")
+         println("im2col:")
+         utils.printExcutingTime(i2c())
+         println("--")
+         println("normal:")
          utils.printExcutingTime(normal())
-         println("\nkn2row:")
+         println("kn2row:")
          utils.printExcutingTime(k2r())
-         println("\nnormal:")
+         println("im2col:")
+         utils.printExcutingTime(i2c())
+         println("--")
+         println("normal:")
          utils.printExcutingTime(normal())
-         println("\nkn2row:")
+         println("kn2row:")
          utils.printExcutingTime(k2r())
-         println("\nnormal:")
+         println("im2col:")
+         utils.printExcutingTime(i2c())
+         println("--")
+         println("normal:")
          utils.printExcutingTime(normal())
-         println("\nkn2row:")
+         println("kn2row:")
          utils.printExcutingTime(k2r())
-         println("\nnormal:")
+         println("im2col:")
+         utils.printExcutingTime(i2c())
+         println("--")
+         println("normal:")
          utils.printExcutingTime(normal())
-         println("\nkn2row:")
+         println("kn2row:")
          utils.printExcutingTime(k2r())
-         println("\nnormal:")
+         println("im2col:")
+         utils.printExcutingTime(i2c())
+         println("--")
+         println("normal:")
          utils.printExcutingTime(normal())
-         println("\nkn2row:")
+         println("kn2row:")
          utils.printExcutingTime(k2r())
-         println("\nnormal:")
+         println("im2col:")
+         utils.printExcutingTime(i2c())
+         println("--")
+         println("normal:")
          utils.printExcutingTime(normal())
-         println("\nkn2row:")
+         println("kn2row:")
          utils.printExcutingTime(k2r())
-         println("\nnormal:")
+         println("im2col:")
+         utils.printExcutingTime(i2c())
+         println("--")
+         println("normal:")
          utils.printExcutingTime(normal())
-         println("\nkn2row:")
+         println("kn2row:")
          utils.printExcutingTime(k2r())
-         println("\nnormal:")
+         println("im2col:")
+         utils.printExcutingTime(i2c())
+         println("--")
+         println("normal:")
          utils.printExcutingTime(normal())
-         println("\nkn2row:")
+         println("kn2row:")
          utils.printExcutingTime(k2r())
-         println("\nnormal:")
+         println("im2col:")
+         utils.printExcutingTime(i2c())
+         println("--")
+         println("normal:")
          utils.printExcutingTime(normal())
-         println("\nkn2row:")
+         println("kn2row:")
          utils.printExcutingTime(k2r())
+         println("im2col:")
+         utils.printExcutingTime(i2c())
+         println("--")
+         println("normal:")
+         utils.printExcutingTime(normal())
+         println("kn2row:")
+         utils.printExcutingTime(k2r())
+         println("im2col:")
+         utils.printExcutingTime(i2c())
+         println("--")
+         println("normal:")
+         utils.printExcutingTime(normal())
+         println("kn2row:")
+         utils.printExcutingTime(k2r())
+         println("im2col:")
+         utils.printExcutingTime(i2c())
+         println("--")
       }
     } else {
       normal()
@@ -387,6 +450,3 @@ object k2rConvTest {
 
   }
 }
-
-// normal 568 746 1444 385 634  879 364  851 1028 890
-// k2r    658 825 946  429 1201 869 1166 825 1024 1028
