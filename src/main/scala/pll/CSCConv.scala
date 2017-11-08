@@ -136,7 +136,7 @@ case class CSCConv(
   }
 
   def save(fn: String): Unit = {
-    val fos = new java.io.FileOutputStream(fn, true)
+    val fos = new java.io.FileOutputStream(fn, false)
     val osw = new java.io.OutputStreamWriter(fos, "UTF-8")
     val pw = new java.io.PrintWriter(osw)
 
@@ -160,7 +160,7 @@ case class CSCConv(
       ch <- F(fs).indices
       v <- 0 until F(fs)(ch).size
     } {
-      F(fs)(ch)(v) = str(0)(fs * F(fs).length + ch * F(fs)(ch).size + v)
+      F(fs)(ch)(v) = str(0)(fs * F(fs).length * F(fs)(ch).size + ch * F(fs)(ch).size + v)
     }
 
     // set 'B' parameter
