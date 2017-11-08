@@ -145,8 +145,8 @@ case class i2cConv(
     val outMat = col_W * col
     val Wx_plus_B = outMat(::, *) + B
 
-    println(s"debug: outMat(${outMat.rows}, ${outMat.cols})")
-    println(s"debug: Wx_plus_B(${Wx_plus_B.rows}, ${Wx_plus_B.cols})")
+    // println(s"debug: outMat(${outMat.rows}, ${outMat.cols})")
+    // println(s"debug: Wx_plus_B(${Wx_plus_B.rows}, ${Wx_plus_B.cols})")
 
     val batches: Array[DMD] = (
       for(i <- 0 until x.size) yield {
@@ -157,7 +157,7 @@ case class i2cConv(
       }
     ).toArray
 
-    println(s"debug: batches($batches.size, ${batches(0).rows}, ${batches(0).cols})")
+    // println(s"debug: batches(${batches.size}, ${batches(0).rows}, ${batches(0).cols})")
 
     batches.map(_.t.toDenseVector)
   }
@@ -180,7 +180,7 @@ case class i2cConv(
     dxVec
   }
 
-  def backward(d: ADVD): ADVD = {
+  override def backwards(d: ADVD): ADVD = {
 
     val dmap: Array[ADVD] = d.map(b => utils.divideIntoN(b, N = filter_set))
     val dMat: DMD = dmap.map(_.map(_.toDenseMatrix).reduce(DenseMatrix.vertcat(_,_))).reduce(DenseMatrix.horzcat(_, _))
@@ -200,8 +200,10 @@ case class i2cConv(
 
   def update(): Unit = {
     val wf: Array[DMD] = opt_filter.update(Array(col_W.get), Array(dW))
-    println(s"debug: F(${F.size}, ${F(0).size}, ${F(0)(0).size})")
-    println(s"debug: wf(${wf.size}, ${wf(0).rows}, ${wf(0).cols})")
+
+    // println(s"debug: F(${F.size}, ${F(0).size}, ${F(0)(0).size})")
+    // println(s"debug: wf(${wf.size}, ${wf(0).rows}, ${wf(0).cols})")
+
     for {
       i <- F.indices
       j <- F(i).indices
@@ -346,7 +348,7 @@ object i2cConvTest {
     val conv2 = conv.forwards(Array(img,img,img))
     conv2.foreach(println)
     println(s"length = ${conv2.size}")
-    val back2 = conv.backward(conv2)
+    val back2 = conv.backwards(conv2)
     println(s"img.size = ${img.size}")
     println(s"back2.size = ${back2.size}")
     conv.update()
