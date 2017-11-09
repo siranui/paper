@@ -121,12 +121,13 @@ object set {
               )
             }
           case "A"  =>
-            println(s"Affine: $i")
-            println(InW(i)*InW(i)*Ch(i))
-            println(InW(i+1)*InW(i+1)*Ch(i+1))
+            // println(s"Affine: $i")
+            // println(InW(i)*InW(i)*Ch(i))
+            // println(InW(i+1)*InW(i+1)*Ch(i+1))
             net.add(new Affine(InW(i)*InW(i)*Ch(i), InW(i+1)*InW(i+1)*Ch(i+1), InitWeights(i), SDs(i), UpdateMethod(i), lrs(i)))
           case "BN" =>
-            net.add(new BatchNorm(UpdateMethod(i)))
+            // net.add(new BatchNorm(UpdateMethod(i)))
+            net.add(new BNL(InW(i+1)*InW(i+1)*Ch(i+1),1))
           case "R"  =>
             net.add(new ReLU())
           case "LR" =>
@@ -138,7 +139,7 @@ object set {
           case _    =>
         }
       }
-      println("debug: " + net.layers(i))
+      // println("debug: " + net.layers(i))
     }
 
     net
