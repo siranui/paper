@@ -59,21 +59,23 @@ object convAE {
       val train = g.batch_train(train_d, train_d, batch, err.calc_L2, grad.calc_L2_grad)
       val test = g.test(test_d, test_d, err.calc_L2)
 
-      E_list  = train._1 :: E_list
-      tE_list = test._1  :: tE_list
-
-      // plotting change of error.
-      // graph.Line(err_fig, Seq(E_list, tE_list).map(l => DenseVector(l.reverse.toArray)),epoch,2)
-      err_actor ! Line(xs = Seq(E_list, tE_list).map(l => DenseVector(l.reverse.toArray)), x_max = epoch, row = 2)
-
       println(s"$e, E: ${train._1}, tE: ${test._1}")
 
-      // visualize generated image
-      // val tr = train._2.flatten.take(50).map{ m =>
-      //   reshape(m, 32, 32).t * 256d
-      // }
-      img_actor ! Image_v(xs = train._2.flatten.take(50), row = 5)
-      test_img_actor ! Image_v(xs = test._2.take(50), row = 5)
+
+      if(display){
+        E_list  = train._1 :: E_list
+        tE_list = test._1  :: tE_list
+
+        // plotting change of error.
+        // graph.Line(err_fig, Seq(E_list, tE_list).map(l => DenseVector(l.reverse.toArray)),epoch,2)
+        err_actor ! Line(xs = Seq(E_list, tE_list).map(l => DenseVector(l.reverse.toArray)), x_max = epoch, row = 2)
+        // visualize generated image
+        // val tr = train._2.flatten.take(50).map{ m =>
+        //   reshape(m, 32, 32).t * 256d
+        // }
+        img_actor ! Image_v(xs = train._2.flatten.take(50), row = 5)
+        test_img_actor ! Image_v(xs = test._2.take(50), row = 5)
+      }
 
 
       // save

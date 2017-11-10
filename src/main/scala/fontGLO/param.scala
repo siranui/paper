@@ -14,6 +14,7 @@ object param {
   var dataSource = "data/fonts/font-all-d.txt"
   var doShuffle = true
   var doSave = true
+  var display = false
   var saveTime = 10
 
 
@@ -56,6 +57,9 @@ object param {
           i += 2
         case "--save-time"                =>
           saveTime = args(i + 1).toInt
+          i += 2
+        case "--display"            =>
+          display = args(i + 1).toBoolean
           i += 2
         case _                            =>
           println(s"unknown option:${args(i)}")
