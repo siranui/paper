@@ -114,7 +114,7 @@ object utils {
 
   def oneHot(x: Int, sz: Int = 10) = {
     assert(sz >= 1)
-    assert(x >= 0 && x < sz, s"out of the range( [0, ${sz-1}] ).")
+    assert(x >= 0 && x < sz, s"$x is out of the range( [0, ${sz-1}] ).")
 
     DenseVector.tabulate(sz){i => if(i == x) 1d else 0d}
   }
