@@ -1,8 +1,6 @@
 package pll
 
-
 import breeze.linalg._
-
 
 case class ResNet(L: Seq[Layer]) extends Layer {
 
@@ -10,25 +8,25 @@ case class ResNet(L: Seq[Layer]) extends Layer {
   type DV = DenseVector[T]
   type DM = DenseMatrix[T]
 
-  def forward(x: DV) : DV = {
+  def forward(x: DV): DV = {
     var tmp = x
-    for(l <- L) {
+    for (l <- L) {
       tmp = l.forward(tmp)
     }
     tmp + x
   }
-   
+
   def backward(d: DV): DV = {
     var tmp = d
-    for(l <- L) {
+    for (l <- L) {
       tmp = l.forward(tmp)
     }
     tmp + d
   }
 
-  def save(filename: String): Unit = { }
+  def save(filename: String): Unit = {}
 
-  def load(filename: String): Unit = { }
+  def load(filename: String): Unit = {}
 
   def load(data: List[String]): List[String] = data
 
