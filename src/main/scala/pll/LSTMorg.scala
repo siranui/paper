@@ -1,8 +1,7 @@
 package pll
 
-
 import breeze.linalg._
-import breeze.numerics.{sigmoid, tanh}
+import breeze.numerics.{ sigmoid, tanh }
 
 class LSTMorg(val xn: Int, val hn: Int, val dist: String, var n: Double, val u: String, val a: Double) extends Layer {
 
@@ -28,17 +27,20 @@ class LSTMorg(val xn: Int, val hn: Int, val dist: String, var n: Double, val u: 
     Wi = Gaussian(hn, hn + xn, hn + xn)
     Wc = Gaussian(hn, hn + xn, hn + xn)
     Wo = Gaussian(hn, hn + xn, hn + xn)
-  } else if (dist == "Uniform") {
+  }
+  else if (dist == "Uniform") {
     Wf = Uniform(hn, hn + xn, hn + xn)
     Wi = Uniform(hn, hn + xn, hn + xn)
     Wc = Uniform(hn, hn + xn, hn + xn)
     Wo = Uniform(hn, hn + xn, hn + xn)
-  } else if (dist == "Xavier") {
+  }
+  else if (dist == "Xavier") {
     Wf = Xavier(hn, hn + xn, hn + xn)
     Wi = Xavier(hn, hn + xn, hn + xn)
     Wc = Xavier(hn, hn + xn, hn + xn)
     Wo = Xavier(hn, hn + xn, hn + xn)
-  } else if (dist == "He") {
+  }
+  else if (dist == "He") {
     Wf = He(hn, hn + xn, hn + xn)
     Wi = He(hn, hn + xn, hn + xn)
     Wc = He(hn, hn + xn, hn + xn)
@@ -75,7 +77,6 @@ class LSTMorg(val xn: Int, val hn: Int, val dist: String, var n: Double, val u: 
 
   var dC = DenseVector.zeros[Double](hn)
   var dN = DenseVector.zeros[Double](hn)
-
 
   var opt = Opt.create(u, a)
   opt.register(Array(bf, bi, bc, bo))
@@ -123,7 +124,6 @@ class LSTMorg(val xn: Int, val hn: Int, val dist: String, var n: Double, val u: 
 
     val dz = (Wf.t * ds) + (Wi.t * dq) + (Wc.t * dp) + (Wo.t * dm)
 
-
     // Update Delta to the previous time
     dN = dz(0 until hn)
     dC = dk *:* Ft.head
@@ -163,7 +163,6 @@ class LSTMorg(val xn: Int, val hn: Int, val dist: String, var n: Double, val u: 
   def DNDC(): (DenseVector[Double], DenseVector[Double]) = {
     (dN, dC)
   }
-
 
   def update(): Unit = {
     val dbs = opt.update(Array(bf, bi, bc, bo), Array(dbf, dbi, dbc, dbo))
@@ -219,11 +218,9 @@ class LSTMorg(val xn: Int, val hn: Int, val dist: String, var n: Double, val u: 
 
   def save(filename: String): Unit = {
 
-
   }
 
   def load(filename: String): Unit = {
-
 
   }
 
