@@ -45,7 +45,7 @@ object graph {
     }
   }
 
-  def Line(fig: Figure, xs: Seq[DenseVector[Double]], x_max: Int, row: Int = 1, filename: String = ""): Unit = {
+  def Line(fig: Figure, xs: Seq[DenseVector[Double]], x_max: Int, row: Int = 1, filename: String = "")(implicit titles: Seq[String] = Seq()): Unit = {
     // 以前の描画結果をリセットする。
     fig.clear
 
@@ -62,7 +62,11 @@ object graph {
       plt += plot(x,xs(r*col+c))
       plt.xlim = (0,x_max)
       // plt.ylim = (0,ymax+ymax*0.1)
-      plt.title = s"${r*col+c}"
+      if(titles.size != 0 && r*col+c < titles.size){
+        plt.title = s"${titles(r*col+c)}"
+      }else{
+        plt.title = s"${r*col+c}"
+      }
     }
 
     // fig.refresh
