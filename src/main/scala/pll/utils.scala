@@ -73,14 +73,14 @@ object utils {
    *
    * @return read data that divide divV( [0,255] -> [0,1) ).
    */
-  def read(fn: String, ds: Int = 0, divV: Double = 256): Array[DenseVector[Double]] = {
+  def read(fn: String, ds: Int = 0, divV: Double = 256)(implicit sepatate: String = ","): Array[DenseVector[Double]] = {
     val f = ds match {
       case 0 =>
         io.Source.fromFile(fn).getLines
-          .map(_.split(",").map(_.toDouble / divV).toArray).toArray
+          .map(_.split(sepatate).map(_.toDouble / divV).toArray).toArray
       case _ =>
         io.Source.fromFile(fn).getLines.take(ds)
-          .map(_.split(",").map(_.toDouble / divV).toArray).toArray
+          .map(_.split(sepatate).map(_.toDouble / divV).toArray).toArray
     }
     val g = f.map(a => DenseVector(a))
     g

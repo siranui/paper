@@ -7,11 +7,11 @@ case class Discriminator() {
 
   val model = new batchNet()
 
-  model.add(new i2cConv(28, 2, 64, 1, stride = 2))
+  model.add(new i2cConv(28, 2, 64, 1, stride = 2, "He", 0.1, "Adam", 0))
   model.add(new LeakyReLU(0.2))
-  model.add(new i2cConv(14, 2, 128, 64, stride = 2))
+  model.add(new i2cConv(14, 2, 128, 64, stride = 2, "He", 0.1, "Adam", 0))
   model.add(new LeakyReLU(0.2))
-  model.add(new Affine(128 * 7 * 7, 256, "Xavier", 0.1, "Adam", 0))
+  model.add(new Affine(128 * 7 * 7, 256, "He", 0.1, "Adam", 0))
   model.add(new LeakyReLU(0.2))
   model.add(new Affine(256, 1, "Xavier", 0.1, "Adam", 0))
   model.add(new Sigmoid())
