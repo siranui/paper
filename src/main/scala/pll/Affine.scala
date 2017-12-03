@@ -1,48 +1,39 @@
 package pll
-
-
 import breeze.linalg._
 
-class Affine(
-  val xn: Int,
-  val yn: Int,
-  val distr: String,
-  val s: Double,
-  val koshin: String,
-  val a: Double) extends Layer {
+class Affine(xn: Int, yn: Int, bumpu: String, s: Double, koshin: String, a: Double) extends Layer {
+  var opt = Opt.create(koshin, a)
+  var w = DenseMatrix.zeros[Double](yn, xn)
+  var b = DenseVector.zeros[Double](yn)
+  var x1 = List[DenseVector[Double]]()
 
-  var opt: Opt = Opt.create(koshin, a)
-  var w: DenseMatrix[Double] = DenseMatrix.zeros[Double](yn, xn)
-  var b: DenseVector[Double] = DenseVector.zeros[Double](yn)
-  var x1: List[DenseVector[Double]] = List[DenseVector[Double]]()
-  if (distr == "Gaussian") {
-    w = Gaussian(yn, xn, s)
-    b = Gaussian(xn, s)
+  bumpu match {
+    case "Uniform" =>
+      w = Uniform(yn, xn, s)
+    //b = Uniform(hn,s)
+    case "Xavier" =>
+      w = Xavier(yn, xn, xn)
+    //b = Xavier(yn,xn)
+    case "He" =>
+      w = He(yn, xn, xn)
+    //b = He(yn,xn)
+    case "Gaussian" | _ =>
+      w = Gaussian(yn, xn, s)
+    //b = Gaussian(hn,s)
   }
-  else if (distr == "Uniform") {
-    w = Uniform(yn, xn, s)
-    b = Uniform(xn, s)
-  }
-  else if (distr == "Xavier") {
-    w = Xavier(yn, xn, xn)
-    b = Xavier(yn, xn)
-  }
-  else {
-    w = He(yn, xn, xn)
-    b = He(yn, xn)
-  }
+
   opt.register(Array(w))
   opt.register(Array(b))
-  var wsum: DenseMatrix[Double] = DenseMatrix.zeros[Double](yn, xn)
-  var bsum: DenseVector[Double] = DenseVector.zeros[Double](yn)
+  var wsum = DenseMatrix.zeros[Double](yn, xn)
+  var bsum = DenseVector.zeros[Double](yn)
 
-  def forward(x: DenseVector[Double]): DenseVector[Double] = {
+  def forward(x: DenseVector[Double]) = {
     x1 = x :: x1
     w * x + b
   }
 
-  def backward(d: DenseVector[Double]): DenseVector[Double] = {
-    wsum += d * x1.head.t
+  def backward(d: DenseVector[Double]) = {
+    wsum += d * x1(0).t
     x1 = x1.tail
     bsum += d
     w.t * d
@@ -52,8 +43,9 @@ class Affine(
     val tmp1 = opt.update(Array(w), Array(wsum))
     val tmp2 = opt.update(Array(b), Array(bsum))
 
-    w = w - tmp1(0)
-    b = b - tmp2(0)
+    w = w - (tmp1(0))
+    b = b - (tmp2(0))
+    reset()
   }
 
   def reset() {
@@ -63,7 +55,7 @@ class Affine(
   }
 
   def save(fn: String) {
-    val fos = new java.io.FileOutputStream(fn, true)
+    val fos = new java.io.FileOutputStream(fn, false)
     val osw = new java.io.OutputStreamWriter(fos, "UTF-8")
     val pw = new java.io.PrintWriter(osw)
     for (i <- 0 until w.rows) {
@@ -87,7 +79,7 @@ class Affine(
     pw.close()
   }
 
-  def load(fn: String): Unit = {
+  def load(fn: String) {
     val str = io.Source.fromFile(fn).getLines.toArray.map(_.split(",").map(_.toDouble))
     for (i <- 0 until w.rows) {
       for (j <- 0 until w.cols) {
@@ -114,10 +106,10 @@ class Affine(
     data.drop(2)
   }
 
-  override def duplicate(): Affine = {
-    val dup = new Affine(xn, yn, distr, s, koshin, a)
-    dup.w = w.copy
-    dup.b = b.copy
-    dup
+  def mycopy() = {
+    val af = new Affine(xn, yn, bumpu, s, koshin, a)
+    af.w = this.w.copy
+    af.b = this.b.copy
+    af
   }
 }

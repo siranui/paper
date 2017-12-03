@@ -24,7 +24,7 @@ class im2colTest extends FunSuite {
   def col2im_check( in_w: Int = 4, out_w: Int = 2, fil_w: Int = 2, ch: Int = 2, stride: Int = 2, batch: Int = 2) = {
     val col = reshape(DenseVector.range(0, fil_w*fil_w*ch*out_w*out_w*batch).map(_.toDouble), out_w*out_w*batch, fil_w*fil_w*ch).t
 
-    col2im(col, Shape4(batch, ch, in_w, in_w), fil_w, fil_w, stride)
+    col2im(col, Shape(batch, ch, in_w, in_w), fil_w, fil_w, stride)
   }
 
 

@@ -122,6 +122,7 @@ case class i2cConv(
     val col = im2col(Array(x), filter_width, filter_width, channel, stride)
     val col_W = fil2mat(F)
 
+    // TODO: col -> col.copy
     this.col_X = Some(col)
     this.col_W = Some(col_W)
 
