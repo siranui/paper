@@ -14,10 +14,12 @@ object MNIST {
 
   var doShuffle = false
 
-  val train_d = utils.read("data/mnist/train-d.txt",datasize)
-  val train_t = utils.read("data/mnist/train-t.txt",1,1)
-  val test_d = utils.read("data/mnist/test-d.txt",testsize)
-  val test_t = utils.read("data/mnist/test-t.txt",1,1)
+  val DATA_DIR = sys.env.getOrElse("XDG_DATA_HOME", "data") + "/mnist"
+
+  val train_d = utils.read(s"$DATA_DIR/train-d.txt",datasize)
+  val train_t = utils.read(s"$DATA_DIR/train-t.txt",1,1)
+  val test_d = utils.read(s"$DATA_DIR/test-d.txt",testsize)
+  val test_t = utils.read(s"$DATA_DIR/test-t.txt",1,1)
 
   val epoch = 30
 
