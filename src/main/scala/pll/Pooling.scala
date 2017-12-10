@@ -3,8 +3,11 @@ package pll
 import breeze.linalg._
 import breeze.numerics._
 
-case class Pooling( window_height: Int, window_width: Int)( ch: Int, input_height: Int, input_width: Int) extends Layer {
-  type T = Double
+case class Pooling(window_height: Int, window_width: Int)(ch: Int,
+                                                          input_height: Int,
+                                                          input_width: Int)
+    extends Layer {
+  type T  = Double
   type DV = DenseVector[T]
   type DM = DenseMatrix[T]
 
@@ -36,7 +39,8 @@ case class Pooling( window_height: Int, window_width: Int)( ch: Int, input_heigh
       j <- 0 until input_width by window_width
     } {
       val mx = argmax(in_mat(i until i + window_height, j until j + window_width))
-      retval(mx._1 + i, mx._2 + j) += d((i / window_height) * ( input_width / window_width ) + j / window_width)
+      retval(mx._1 + i, mx._2 + j) += d(
+        (i / window_height) * (input_width / window_width) + j / window_width)
     }
     retval.t.toDenseVector
   }

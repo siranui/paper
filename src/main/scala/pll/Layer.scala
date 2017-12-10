@@ -1,6 +1,5 @@
 package pll
 
-
 import breeze.linalg._
 
 trait Layer {
@@ -9,7 +8,7 @@ trait Layer {
 
   def forwards(x: Array[DenseVector[Double]]): Array[DenseVector[Double]] = {
     // x.map(forward)
-    (for(x_i <- x) yield {forward(x_i)}).toArray
+    (for (x_i <- x) yield { forward(x_i) }).toArray
   }
 
   def backward(d: DenseVector[Double]): DenseVector[Double]
@@ -17,8 +16,8 @@ trait Layer {
   def backwards(d: Array[DenseVector[Double]]): Array[DenseVector[Double]] = {
     // d.map(backward)
     var buf = List[DenseVector[Double]]()
-    for(d_i <- d.reverse) {
-       buf = backward(d_i) :: buf
+    for (d_i <- d.reverse) {
+      buf = backward(d_i) :: buf
     }
     buf.toArray
   }

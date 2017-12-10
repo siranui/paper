@@ -1,30 +1,32 @@
 package pll
 
-
 import breeze.linalg._
 import breeze.plot._
 
 object graph {
   def Histgram(xs: Seq[DenseVector[Double]], row: Int = 1, filename: String = ""): Unit = {
     val col: Int = math.ceil(xs.size / row.toDouble).toInt
-    val fig = Figure()
+    val fig      = Figure()
 
     for {
       r <- 0 until row
       c <- 0 until col
-      if (r*col+c < xs.size)
+      if (r * col + c < xs.size)
     } {
-      val plt = fig.subplot(row, col, r*col+c)
-      plt += hist(xs(r*col+c), 30)
+      val plt = fig.subplot(row, col, r * col + c)
+      plt += hist(xs(r * col + c), 30)
     }
 
-    if(filename != ""){
+    if (filename != "") {
       fig.saveas(filename)
     }
   }
 
   // 外からfigを渡すことで、同一のウィンドウでグラフを描画するようになる。
-  def Histgram2(fig: Figure, xs: Seq[DenseVector[Double]], row: Int = 1, filename: String = ""): Unit = {
+  def Histgram2(fig: Figure,
+                xs: Seq[DenseVector[Double]],
+                row: Int = 1,
+                filename: String = ""): Unit = {
     // 以前の描画結果をリセットする。
     fig.clear
 
@@ -33,56 +35,64 @@ object graph {
     for {
       r <- 0 until row
       c <- 0 until col
-      if (r*col+c < xs.size)
+      if (r * col + c < xs.size)
     } {
-      val plt = fig.subplot(row, col, r*col+c)
-      plt += hist(xs(r*col+c), 30)
-      plt.title = s"hist ${r*col+c}"
+      val plt = fig.subplot(row, col, r * col + c)
+      plt += hist(xs(r * col + c), 30)
+      plt.title = s"hist ${r * col + c}"
     }
 
-    if(filename != ""){
+    if (filename != "") {
       fig.saveas(filename)
     }
   }
 
-  def Line(fig: Figure, xs: Seq[DenseVector[Double]], x_max: Int, row: Int = 1, filename: String = "")(implicit titles: Seq[String] = Seq()): Unit = {
+  def Line(fig: Figure,
+           xs: Seq[DenseVector[Double]],
+           x_max: Int,
+           row: Int = 1,
+           filename: String = "")(implicit titles: Seq[String] = Seq()): Unit = {
     // 以前の描画結果をリセットする。
     fig.clear
 
-    val x = linspace(0,xs(0).size,xs(0).size)
+    val x = linspace(0, xs(0).size, xs(0).size)
     // val ymax = max(xs.map(max(_)))
     val col: Int = math.ceil(xs.size / row.toDouble).toInt
 
     for {
       r <- 0 until row
       c <- 0 until col
-      if (r*col+c < xs.size)
+      if (r * col + c < xs.size)
     } {
-      val plt = fig.subplot(row, col, r*col+c)
-      plt += plot(x,xs(r*col+c))
-      plt.xlim = (0,x_max)
+      val plt = fig.subplot(row, col, r * col + c)
+      plt += plot(x, xs(r * col + c))
+      plt.xlim = (0, x_max)
       // plt.ylim = (0,ymax+ymax*0.1)
-      if(titles.size != 0 && r*col+c < titles.size){
-        plt.title = s"${titles(r*col+c)}"
-      }else{
-        plt.title = s"${r*col+c}"
+      if (titles.size != 0 && r * col + c < titles.size) {
+        plt.title = s"${titles(r * col + c)}"
+      }
+      else {
+        plt.title = s"${r * col + c}"
       }
     }
 
     // fig.refresh
 
-    if(filename != ""){
+    if (filename != "") {
       fig.saveas(filename)
     }
   }
 
-  def Image(fig: Figure, xs: Seq[DenseMatrix[Double]], row: Int = 1, filename: String = ""): Unit = {
+  def Image(fig: Figure,
+            xs: Seq[DenseMatrix[Double]],
+            row: Int = 1,
+            filename: String = ""): Unit = {
     // 以前の描画結果をリセットする。
     fig.clear
 
     def upsideDown(mat: DenseMatrix[Double]) = {
       val buf = DenseMatrix.zeros[Double](mat.rows, mat.cols)
-      (0 until mat.rows).foreach( r => buf(r, ::) := mat(mat.rows-1-r, ::) )
+      (0 until mat.rows).foreach(r => buf(r, ::) := mat(mat.rows - 1 - r, ::))
       buf
     }
 
@@ -92,18 +102,18 @@ object graph {
     for {
       r <- 0 until row
       c <- 0 until col
-      if (r*col+c < xs.size)
+      if (r * col + c < xs.size)
     } {
-      val plt = fig.subplot(row, col, r*col+c)
-      plt += image(upsideDown(xs(r*col+c)))
-      plt.xlim = (0,xs(r*col+c).rows)
-      plt.ylim = (0,xs(r*col+c).cols)
+      val plt = fig.subplot(row, col, r * col + c)
+      plt += image(upsideDown(xs(r * col + c)))
+      plt.xlim = (0, xs(r * col + c).rows)
+      plt.ylim = (0, xs(r * col + c).cols)
       // plt.title = s"${r*col+c}"
     }
 
     // fig.refresh
 
-    if(filename != ""){
+    if (filename != "") {
       fig.saveas(filename)
     }
   }

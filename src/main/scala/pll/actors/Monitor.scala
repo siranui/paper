@@ -1,6 +1,5 @@
 package pll.actors
 
-
 import akka.actor.{Actor, ActorLogging, Props}
 import breeze.linalg._
 import breeze.plot.Figure
@@ -19,28 +18,28 @@ class Monitor(fig: Figure) extends Actor with ActorLogging {
 
   var count = 0
   def receive = {
-    case Histgram(xs,row,filename) =>
+    case Histgram(xs, row, filename) =>
       pll.graph.Histgram2(fig, xs, row, filename)
       count += 1
       log.info(s"make histgram $count.\n")
 
-    case Line(xs,x_max,row,filename) =>
+    case Line(xs, x_max, row, filename) =>
       pll.graph.Line(fig, xs, x_max, row, filename)
       count += 1
       log.info(s"make plot $count.\n")
 
-    case Image_v(xs,row,filename) =>
+    case Image_v(xs, row, filename) =>
       val wid = math.sqrt(xs(0).length).toInt
-      val mats = xs.map{v =>
+      val mats = xs.map { v =>
         // 幅が同じならばmapの外で決める。
         // val wid = math.sqrt(v.length).toInt
-        reshape(v,wid,wid).t
+        reshape(v, wid, wid).t
       }
       pll.graph.Image(fig, mats, row, filename)
       count += 1
       log.info(s"make image $count.\n")
 
-    case Image(xs,row,filename) =>
+    case Image(xs, row, filename) =>
       pll.graph.Image(fig, xs, row, filename)
       count += 1
       log.info(s"make image $count.\n")
@@ -50,4 +49,3 @@ class Monitor(fig: Figure) extends Actor with ActorLogging {
   }
 
 }
-

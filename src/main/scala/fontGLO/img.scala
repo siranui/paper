@@ -1,13 +1,12 @@
 package fontGLO
 
-
 import pll._
 import breeze.linalg._
 
 object img {
   def half(v: DenseVector[Double]) = {
     val wid = math.sqrt(v.size).toInt
-    val c = Convolution(wid, 2, stride = 2)
+    val c   = Convolution(wid, 2, stride = 2)
     c.F = Array(Array(DenseVector(0.25, 0.25, 0.25, 0.25)))
     c.forward(v)
   }

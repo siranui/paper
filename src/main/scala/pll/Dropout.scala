@@ -7,8 +7,8 @@ class Dropout(var dr: Double) extends Layer {
 
   def forward(x: DenseVector[Double]) = {
     val mask = DenseVector.ones[Double](x.size)
-    for(i <- 0 until mask.size){
-      if(rand.nextDouble < dr){
+    for (i <- 0 until mask.size) {
+      if (rand.nextDouble < dr) {
         mask(i) = 0d
       }
     }
@@ -33,7 +33,7 @@ class Dropout(var dr: Double) extends Layer {
   }
 
   def update() {}
-  def reset() {masks = Nil}
+  def reset() { masks = Nil }
   def save(filename: String) {}
   def load(filename: String) {}
   def load(data: List[String]) = { data }

@@ -1,6 +1,5 @@
 package pll
 
-
 import breeze.linalg._
 
 object utils {
@@ -66,35 +65,43 @@ object utils {
   }
 
   /** read data from file.
-   *
-   * @param fn   filename. (relative path from root)
-   * @param ds   read line size from head. if (ds == 0) then read all.   *
-   * @param divV divide value.
-   *
-   * @return read data that divide divV( [0,255] -> [0,1) ).
-   */
-  def read(fn: String, ds: Int = 0, divV: Double = 256)(implicit sepatate: String = ","): Array[DenseVector[Double]] = {
+    *
+    * @param fn   filename. (relative path from root)
+    * @param ds   read line size from head. if (ds == 0) then read all.   *
+    * @param divV divide value.
+    *
+    * @return read data that divide divV( [0,255] -> [0,1) ).
+    */
+  def read(fn: String, ds: Int = 0, divV: Double = 256)(
+      implicit sepatate: String = ","): Array[DenseVector[Double]] = {
     val f = ds match {
       case 0 =>
-        io.Source.fromFile(fn).getLines
-          .map(_.split(sepatate).map(_.toDouble / divV).toArray).toArray
+        io.Source
+          .fromFile(fn)
+          .getLines
+          .map(_.split(sepatate).map(_.toDouble / divV).toArray)
+          .toArray
       case _ =>
-        io.Source.fromFile(fn).getLines.take(ds)
-          .map(_.split(sepatate).map(_.toDouble / divV).toArray).toArray
+        io.Source
+          .fromFile(fn)
+          .getLines
+          .take(ds)
+          .map(_.split(sepatate).map(_.toDouble / divV).toArray)
+          .toArray
     }
     val g = f.map(a => DenseVector(a))
     g
   }
 
   /** write data to file.
-   *
-   * @param fn       filename. (relative path from root)
-   * @param dataList data.
-   */
+    *
+    * @param fn       filename. (relative path from root)
+    * @param dataList data.
+    */
   def write(fn: String, dataList: List[DenseVector[Int]], tf: Boolean = false): Unit = {
     val fos = new java.io.FileOutputStream(fn, tf) //true: 追記, false: 上書き
     val osw = new java.io.OutputStreamWriter(fos, "UTF-8")
-    val pw = new java.io.PrintWriter(osw)
+    val pw  = new java.io.PrintWriter(osw)
 
     for (data <- dataList) {
       pw.write(data.toArray.mkString(","))
@@ -104,27 +111,27 @@ object utils {
   }
 
   def printExcutingTime[T](proc: => T): T = {
-    val start = System.currentTimeMillis
+    val start     = System.currentTimeMillis
     val result: T = proc
     println(s"Excuting Time: ${System.currentTimeMillis - start} msec")
 
     result
   }
 
-
   def oneHot(x: Int, sz: Int = 10) = {
     assert(sz >= 1)
-    assert(x >= 0 && x < sz, s"$x is out of the range( [0, ${sz-1}] ).")
+    assert(x >= 0 && x < sz, s"$x is out of the range( [0, ${sz - 1}] ).")
 
-    DenseVector.tabulate(sz){i => if(i == x) 1d else 0d}
+    DenseVector.tabulate(sz) { i =>
+      if (i == x) 1d else 0d
+    }
   }
 
   def oneHot2(x: Int, sz: Int = 10) = {
     assert(sz >= 1)
-    assert(x >= 0 && x < sz, s"out of the range( [0, ${sz-1}] ).")
+    assert(x >= 0 && x < sz, s"out of the range( [0, ${sz - 1}] ).")
 
-    SparseVector(sz)((x,1d))
+    SparseVector(sz)((x, 1d))
   }
-
 
 }

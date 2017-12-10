@@ -3,9 +3,9 @@ import breeze.linalg._
 
 class Affine(xn: Int, yn: Int, bumpu: String, s: Double, koshin: String, a: Double) extends Layer {
   var opt = Opt.create(koshin, a)
-  var w = DenseMatrix.zeros[Double](yn, xn)
-  var b = DenseVector.zeros[Double](yn)
-  var x1 = List[DenseVector[Double]]()
+  var w   = DenseMatrix.zeros[Double](yn, xn)
+  var b   = DenseVector.zeros[Double](yn)
+  var x1  = List[DenseVector[Double]]()
 
   bumpu match {
     case "Uniform" =>
@@ -57,12 +57,11 @@ class Affine(xn: Int, yn: Int, bumpu: String, s: Double, koshin: String, a: Doub
   def save(fn: String) {
     val fos = new java.io.FileOutputStream(fn, false)
     val osw = new java.io.OutputStreamWriter(fos, "UTF-8")
-    val pw = new java.io.PrintWriter(osw)
+    val pw  = new java.io.PrintWriter(osw)
     for (i <- 0 until w.rows) {
       for (j <- 0 until w.cols) {
         pw.write(w(i, j).toString)
-        if (i == w.rows - 1 && j == w.cols - 1) {
-        }
+        if (i == w.rows - 1 && j == w.cols - 1) {}
         else {
           pw.write(",")
         }

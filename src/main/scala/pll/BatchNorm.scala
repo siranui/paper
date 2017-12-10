@@ -1,21 +1,20 @@
 package pll
 
-
 import breeze.linalg._
 
 class BatchNorm(update_method: String = "SGD", lr: Double = 0.01) extends Layer {
   // Ã¥Â­Â¦Ã§Â¿ÂÃ¥Â¯Â¾Ã¨Â±Â¡
   var gamma: DenseVector[Double] = null //DenseVector.ones[Double](ch*dim)
-  var beta: DenseVector[Double] = null //DenseVector.zeros[Double](ch*dim)
+  var beta: DenseVector[Double]  = null //DenseVector.zeros[Double](ch*dim)
 
   // backward()Ã£ÂÂ§Ã¤Â½Â¿Ã£ÂÂÃ£ÂÂÃ£ÂÂÃ£ÂÂforward()Ã£ÂÂ®Ã¥Â¤ÂÃ£ÂÂ§Ã¥Â®ÂÃ§Â¾Â©Ã£ÂÂÃ£ÂÂ¦Ã£ÂÂÃ£ÂÂ
-  var xc = Array[DenseVector[Double]]()
+  var xc  = Array[DenseVector[Double]]()
   var std = DenseVector[Double]()
-  var xn = Array[DenseVector[Double]]()
+  var xn  = Array[DenseVector[Double]]()
 
   // Ã¦ÂÂ´Ã¦ÂÂ°Ã©ÂÂÃ£ÂÂÃ¤Â¿ÂÃ¦ÂÂÃ£ÂÂÃ£ÂÂÃ¥Â¤ÂÃ¦ÂÂ°
   var dgamma: DenseVector[Double] = null //DenseVector.zeros[Double](ch*dim)
-  var dbeta: DenseVector[Double] = null //DenseVector.zeros[Double](ch*dim)
+  var dbeta: DenseVector[Double]  = null //DenseVector.zeros[Double](ch*dim)
 
   var opt = Opt.create(update_method, lr)
   // opt.register(Array(gamma,beta))
@@ -52,15 +51,19 @@ class BatchNorm(update_method: String = "SGD", lr: Double = 0.01) extends Layer 
 
     val dxn = d.map(_ *:* gamma)
 
-    val dstd = -(dxn zip xc).map { case (dxn_i, xc_i) =>
-      (dxn_i *:* xc_i) /:/ (std *:* std)
-    }.reduce(_ + _)
+    val dstd = -(dxn zip xc)
+      .map {
+        case (dxn_i, xc_i) =>
+          (dxn_i *:* xc_i) /:/ (std *:* std)
+      }
+      .reduce(_ + _)
     val dsig2 = 0.5 *:* dstd /:/ std
 
     val dxc_1 = dxn.map(_ /:/ std)
     val dxc_2 = xc.map(_ *:* 2d *:* dsig2 /:/ batch_size)
-    val dxc = (dxc_1 zip dxc_2).map { case (dxc_1_i, dxc_2_i) =>
-      dxc_1_i + dxc_2_i
+    val dxc = (dxc_1 zip dxc_2).map {
+      case (dxc_1_i, dxc_2_i) =>
+        dxc_1_i + dxc_2_i
     }
 
     val dmu = dxc.reduce(_ + _)

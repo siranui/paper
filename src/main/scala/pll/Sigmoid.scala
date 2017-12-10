@@ -15,15 +15,12 @@ class Sigmoid() extends Layer {
     yl = yl.tail
     dd
   }
-  def update() {
-  }
+  def update() {}
   def reset() {
     yl = List[DenseVector[Double]]()
   }
-  def save(fn: String) {
-  }
-  def load(fn: String) {
-  }
+  def save(fn: String) {}
+  def load(fn: String) {}
   def load(data: List[String]) = {
     data
   }

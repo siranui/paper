@@ -1,6 +1,5 @@
 package fontGLO
 
-
 import pll._
 import breeze.linalg._
 import scala.language.postfixOps
@@ -10,16 +9,14 @@ class batch_font_GLO(var LapDir: Int = 8) extends batchNet {
   val Lap = Convolution(32, 3, 1, 1, 1, "", 1d, "", 1d)
 
   val l: DenseVector[Double] = LapDir match {
-    case 4     => DenseVector[Double](
-      0, 1, 0,
-      1, -4, 1,
-      0, 1, 0
-    )
-    case 8 | _ => DenseVector[Double](
-      1, 1, 1,
-      1, -8, 1,
-      1, 1, 1
-    )
+    case 4 =>
+      DenseVector[Double](
+        0, 1, 0, 1, -4, 1, 0, 1, 0
+      )
+    case 8 | _ =>
+      DenseVector[Double](
+        1, 1, 1, 1, -8, 1, 1, 1, 1
+      )
   }
   Lap.F = Array(Array(l))
 
@@ -42,8 +39,8 @@ class batch_font_GLO(var LapDir: Int = 8) extends batchNet {
   }
 
   def calc_Lap_grad(
-    ys: Array[DenseVector[Double]],
-    ts: Array[DenseVector[Double]]
+      ys: Array[DenseVector[Double]],
+      ts: Array[DenseVector[Double]]
   ): Array[DenseVector[Double]] = {
 
     val grads = for ((y, t) <- ys zip ts) yield {
@@ -55,10 +52,6 @@ class batch_font_GLO(var LapDir: Int = 8) extends batchNet {
 
 }
 
-
-
-
-
 object batch_font_GLO {
 
   import param._
@@ -69,8 +62,8 @@ object batch_font_GLO {
     param.setParamFromArgs(args)
     set.readConf(networkConfFile)
 
-    val start_time = (scala.sys.process.Process("date +%y%m%d-%H%M%S") !!).init
-    val res_path = s"${savePath}/results/${start_time}"
+    val start_time   = (scala.sys.process.Process("date +%y%m%d-%H%M%S") !!).init
+    val res_path     = s"${savePath}/results/${start_time}"
     val weights_path = s"${savePath}/weights/${start_time}"
 
     if (doSave) {
@@ -86,7 +79,6 @@ object batch_font_GLO {
         rand.nextGaussian / math.sqrt(data_size)
       }
     }
-
 
     // TODO: 関数化する
     // make network
@@ -133,7 +125,7 @@ object batch_font_GLO {
           case "Laplacian" | "laplacian" | "Lap" | "lap" =>
             E += g.calc_Lap_loss(ys, ts)
             d = g.calc_Lap_grad(ys, ts)
-          case "L2" | _                                  =>
+          case "L2" | _ =>
             E += err.calc_L2(ys, ts)
             d = grad.calc_L2_grad(ys, ts)
         }

@@ -1,23 +1,23 @@
 package pll
 
-object mk{
+object mk {
 
   def Graph(
-    data: List[List[Double]],
-    xlabel: String = "",
-    ylabel: String = "",
-    title: String = "",
-    saveFileName: String = "result.png"
+      data: List[List[Double]],
+      xlabel: String = "",
+      ylabel: String = "",
+      title: String = "",
+      saveFileName: String = "result.png"
   ) = {
     import breeze.plot._
 
     val f = Figure()
     val p = f.subplot(0)
-    for(i <- 0 until data.size){
+    for (i <- 0 until data.size) {
       val d = data(i).zipWithIndex
-      i match{
+      i match {
         case 0 | 1 => p += plot(d.map(_._2.toDouble), d.map(_._1))
-        case _ => p += plot(d.map(_._2.toDouble), d.map(_._1), '.')
+        case _     => p += plot(d.map(_._2.toDouble), d.map(_._1), '.')
       }
     }
 
@@ -25,6 +25,5 @@ object mk{
     p.xlabel = xlabel; p.ylabel = ylabel; p.title = title
     f.saveas(saveFileName)
   }
-
 
 }

@@ -28,8 +28,8 @@ case class Generator() {
 object GeneratorTest {
   def main(args: Array[String]) {
 
-    val gen = Generator()
-    val noize = DenseVector.rand(100)
+    val gen     = Generator()
+    val noize   = DenseVector.rand(100)
     val d_noize = DenseVector.rand(784)
 
     val res_f = gen.model.predict(Array(noize, noize))

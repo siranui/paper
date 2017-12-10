@@ -4,7 +4,7 @@ import pll._
 
 object seq2seq {
 
-  val node = 100
+  val node  = 100
   val epoch = 100
 
 //  def oneHot(n: Char) = {
@@ -22,7 +22,8 @@ object seq2seq {
     val ts = 100
 
     val V = new word2vec.Vocabrary
-    val data = io.Source.fromFile("text8.txt").getLines.map(_.trim.split(" ").take(ds+ts)).toArray.flatten
+    val data =
+      io.Source.fromFile("text8.txt").getLines.map(_.trim.split(" ").take(ds + ts)).toArray.flatten
     println("* data loaded")
     V.setVocab(data)
     println("* set vocab")
@@ -33,62 +34,58 @@ object seq2seq {
     // val test_d: List[String] = io.Source.fromFile("src/main/scala/lstm_test/test_d.txt").getLines.take(ts).toList
     // val test_t: List[String] = io.Source.fromFile("src/main/scala/lstm_test/test_t.txt").getLines.take(ts).toList
 
-
-
-
     val EOS = DenseVector.zeros[Double](V.vocab.size)
 
-    val encoder = Array( new LSTMorg(V.vocab.size,node,"Xavier",0.1,"Adam",0.01))
+    val encoder = Array(new LSTMorg(V.vocab.size, node, "Xavier", 0.1, "Adam", 0.01))
 
     var decoder = Array(
-          new LSTMorg(V.vocab.size,node,"Xavier",0.1,"Adam",0.01),
-          new Affine(node,V.vocab.size,"Xavier",0.1,"Adam",0.01),
-          new SoftMax()
-          )
+      new LSTMorg(V.vocab.size, node, "Xavier", 0.1, "Adam", 0.01),
+      new Affine(node, V.vocab.size, "Xavier", 0.1, "Adam", 0.01),
+      new SoftMax()
+    )
 
     val window = 10
 
-    val tr_d: List[List[DenseVector[Double]]] = (for(idx <- 0 until ds - 2*window) yield {
-       var l = (for(i <- idx until idx + window) yield {
-          utils.oneHot(V.indexOf(data(i)), V.vocab.size)
-       }).toList
-       (EOS :: l.reverse).reverse
+    val tr_d: List[List[DenseVector[Double]]] = (for (idx <- 0 until ds - 2 * window) yield {
+      var l = (for (i <- idx until idx + window) yield {
+        utils.oneHot(V.indexOf(data(i)), V.vocab.size)
+      }).toList
+      (EOS :: l.reverse).reverse
     }).toList
-    val tr_t = (for(idx <- window until ds - window) yield {
-       var l = (for(i <- idx until idx + window) yield {
-          utils.oneHot(V.indexOf(data(i)), V.vocab.size)
-       }).toList
-       (EOS :: l.reverse).reverse
+    val tr_t = (for (idx <- window until ds - window) yield {
+      var l = (for (i <- idx until idx + window) yield {
+        utils.oneHot(V.indexOf(data(i)), V.vocab.size)
+      }).toList
+      (EOS :: l.reverse).reverse
     }).toList
 
-    val te_d: List[List[DenseVector[Double]]] = (for(idx <- ds until ds + ts - 2*window) yield {
-       var l = (for(i <- idx until idx + window) yield {
-          utils.oneHot(V.indexOf(data(i)), V.vocab.size)
-       }).toList
-       (EOS :: l.reverse).reverse
+    val te_d: List[List[DenseVector[Double]]] = (for (idx <- ds until ds + ts - 2 * window) yield {
+      var l = (for (i <- idx until idx + window) yield {
+        utils.oneHot(V.indexOf(data(i)), V.vocab.size)
+      }).toList
+      (EOS :: l.reverse).reverse
     }).toList
-    val te_t = (for(idx <- ds + window until ds + ts - window) yield {
-       var l = (for(i <- idx until idx + window) yield {
-          utils.oneHot(V.indexOf(data(i)), V.vocab.size)
-       }).toList
-       (EOS :: l.reverse).reverse
+    val te_t = (for (idx <- ds + window until ds + ts - window) yield {
+      var l = (for (i <- idx until idx + window) yield {
+        utils.oneHot(V.indexOf(data(i)), V.vocab.size)
+      }).toList
+      (EOS :: l.reverse).reverse
     }).toList
     // val te_d: List[List[DenseVector[Double]]] = train_d.map(eos :: _.map(oneHot).toList.reverse).reverse
     // val te_t = train_t.map(_.map(oneHot).toList)
 
-
     println("* training start")
 
-    for(i <- 0 until epoch){
+    for (i <- 0 until epoch) {
 
-      println(s"  + [${i+1}/$epoch]")
+      println(s"  + [${i + 1}/$epoch]")
 
-      var correct = 0
+      var correct      = 0
       var correct_test = 0
-      var E_train = 0d
-      var E_test = 0d
+      var E_train      = 0d
+      var E_test       = 0d
 
-      for((d, t) <- tr_d zip tr_t){
+      for ((d, t) <- tr_d zip tr_t) {
         d.map(encoder(0).forward)
 
         val (hr, cr) = encoder(0).HRCR()
@@ -97,23 +94,23 @@ object seq2seq {
         dt.Hr = List(hr); dt.Cr = List(cr)
         decoder(0) = dt
 
-        var list = List[DenseVector[Double]]()
+        var list  = List[DenseVector[Double]]()
         var count = 0
-        var loss = List[DenseVector[Double]]()
-        do{
+        var loss  = List[DenseVector[Double]]()
+        do {
 
-          if(list.size == 0){
+          if (list.size == 0) {
             list = EOS :: list
           }
 
           // input for decoder
           // var otmp = list.head
-          var otmp = count match{
-             case 0 => EOS
-             case _ => t(count-1)
+          var otmp = count match {
+            case 0 => EOS
+            case _ => t(count - 1)
           }
 
-          for(dec <- decoder){
+          for (dec <- decoder) {
             //println(otmp.size)
             otmp = dec.forward(otmp)
           }
@@ -127,36 +124,41 @@ object seq2seq {
 
           count += 1
 
-
-        }while(argmax(list.head) != 10 && count < t.size)
+        } while (argmax(list.head) != 10 && count < t.size)
 
         // val str = List("0","1","2","3","4","5","6","7","8","9","+","EOS")
 
-        val tt = t.map{i => V.indexOf.filter(_._2 == argmax(i)).par.keys.head}.mkString(" ")
+        val tt = t
+          .map { i =>
+            V.indexOf.filter(_._2 == argmax(i)).par.keys.head
+          }
+          .mkString(" ")
         // println(s"t: $tt")
         // println(s"loss: ${loss.map(sum(_)).reduce(_+_)}")
 
-
-        val y = list.reverse.tail.map{i => V.indexOf.filter(_._2 == argmax(i)).par.keys.head}.mkString(" ")
+        val y = list.reverse.tail
+          .map { i =>
+            V.indexOf.filter(_._2 == argmax(i)).par.keys.head
+          }
+          .mkString(" ")
         //println(s"y: $y")
 
-        if(y == tt) correct += 1
+        if (y == tt) correct += 1
 
-        for(l <- 0 until loss.size){
+        for (l <- 0 until loss.size) {
           var tmp = loss(l)
-          for(dec <- decoder.reverse){
+          for (dec <- decoder.reverse) {
             tmp = dec.backward(tmp)
           }
         }
 
         val ddd: LSTMorg = decoder(0).asInstanceOf[LSTMorg]
-        val (dn,dc) = ddd.DNDC()
-        var et = encoder(0).asInstanceOf[LSTMorg]
+        val (dn, dc)     = ddd.DNDC()
+        var et           = encoder(0).asInstanceOf[LSTMorg]
         et.dN = dn; et.dC = dc
         encoder(0) = et
 
-
-        for(_ <- 0 until d.size){
+        for (_ <- 0 until d.size) {
           encoder(0).backward(DenseVector.zeros[Double](node))
         }
 
@@ -166,11 +168,8 @@ object seq2seq {
         decoder.map(_.reset)
       }
 
-
-
-
       //test-start
-      for((d,t) <- te_d zip te_t){
+      for ((d, t) <- te_d zip te_t) {
         d.map(encoder(0).forward)
 
         val (hr, cr) = encoder(0).HRCR()
@@ -179,17 +178,17 @@ object seq2seq {
         dt.Hr = List(hr); dt.Cr = List(cr)
         decoder(0) = dt
 
-        var list = List[DenseVector[Double]]()
+        var list  = List[DenseVector[Double]]()
         var count = 0
-        var loss = List[DenseVector[Double]]()
-        do{
+        var loss  = List[DenseVector[Double]]()
+        do {
 
-          if(list.size == 0){
+          if (list.size == 0) {
             list = EOS :: list
           }
 
           var otmp = list.head
-          for(dec <- decoder){
+          for (dec <- decoder) {
             otmp = dec.forward(otmp)
           }
 
@@ -200,20 +199,30 @@ object seq2seq {
 
           count += 1
 
-
-        }while(argmax(list.head) != 10 && count < t.size)
+        } while (argmax(list.head) != 10 && count < t.size)
 
         // val str = List("0","1","2","3","4","5","6","7","8","9","+","eos")
 
-        val x = d.map{i => V.indexOf.filter(_._2 == argmax(i)).par.keys.head}.mkString(" ")
-        val tt = t.map{i => V.indexOf.filter(_._2 == argmax(i)).par.keys.head}.mkString(" ")
+        val x = d
+          .map { i =>
+            V.indexOf.filter(_._2 == argmax(i)).par.keys.head
+          }
+          .mkString(" ")
+        val tt = t
+          .map { i =>
+            V.indexOf.filter(_._2 == argmax(i)).par.keys.head
+          }
+          .mkString(" ")
 
-        val y = list.reverse.tail.map{i => V.indexOf.filter(_._2 == argmax(i)).par.keys.head}.mkString(" ")
+        val y = list.reverse.tail
+          .map { i =>
+            V.indexOf.filter(_._2 == argmax(i)).par.keys.head
+          }
+          .mkString(" ")
 
         println(s"input:\t$x\ntag:\t$tt\noutput:\t$y\n")
 
-        if(y == tt) correct_test += 1
-
+        if (y == tt) correct_test += 1
 
         encoder.map(_.reset)
         decoder.map(_.reset)
@@ -227,11 +236,10 @@ object seq2seq {
 
       // println(s"----- $i -----")
 
-      println(s"$i, ${E_train}, ${E_test}, ${correct.toDouble / tr_d.size * 100}%, ${correct_test.toDouble / te_d.size * 100}%")
-
+      println(
+        s"$i, ${E_train}, ${E_test}, ${correct.toDouble / tr_d.size * 100}%, ${correct_test.toDouble / te_d.size * 100}%")
 
     }
-
 
   }
 }

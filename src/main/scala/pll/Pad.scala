@@ -1,8 +1,6 @@
 package pll
 
-
 import breeze.linalg._
-
 
 /*
  *  param
@@ -17,13 +15,13 @@ case class Pad(channel: Int, width: Int, ud: String = "down") extends Layer {
 
   def forward(x: DenseVector[Double]): DenseVector[Double] = {
     xs = x :: xs
-    val xch = utils.divideIntoN(x, channel)
+    val xch        = utils.divideIntoN(x, channel)
     val padded_xch = xch.map(padding(_, width, ud))
     padded_xch.reduceLeft((i, j) => DenseVector.vertcat(i, j)) // convert to 1d
   }
 
   def backward(d: DenseVector[Double]): DenseVector[Double] = {
-    val dch = utils.divideIntoN(d, channel)
+    val dch          = utils.divideIntoN(d, channel)
     val unpadded_dch = dch.map(back(_, width, ud))
     unpadded_dch.reduceLeft((i, j) => DenseVector.vertcat(i, j)) // convert to 1d
   }
@@ -42,7 +40,6 @@ case class Pad(channel: Int, width: Int, ud: String = "down") extends Layer {
     data
   }
 
-
   /*
    *  param
    *  ------
@@ -54,11 +51,11 @@ case class Pad(channel: Int, width: Int, ud: String = "down") extends Layer {
    *  padded matrix
    */
   def padding(m: DenseVector[Double], width: Int, method: String): DenseVector[Double] = {
-    val w = math.sqrt(m.size).toInt
+    val w   = math.sqrt(m.size).toInt
     val mat = reshape(m, w, w)
 
     method match {
-      case "up" | "Up" | "UP" => trans(mat.t, width).t.toDenseVector
+      case "up" | "Up" | "UP"           => trans(mat.t, width).t.toDenseVector
       case "down" | "Down" | "DOWN" | _ => around(mat.t, width).t.toDenseVector
     }
   }
@@ -71,7 +68,7 @@ case class Pad(channel: Int, width: Int, ud: String = "down") extends Layer {
   def trans(m: DenseMatrix[Double], width: Int): DenseMatrix[Double] = {
     assert(m.rows == m.cols, "Rectangle is not support.")
 
-    val w = m.rows
+    val w  = m.rows
     val ww = (width + 1) * w + width
 
     val builder = new CSCMatrix.Builder[Double](rows = ww, cols = ww)
@@ -107,4 +104,3 @@ case class Pad(channel: Int, width: Int, ud: String = "down") extends Layer {
   }
 
 }
-

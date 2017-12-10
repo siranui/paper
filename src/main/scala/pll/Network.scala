@@ -1,6 +1,5 @@
 package pll
 
-
 import breeze.linalg._
 
 class Network() {
@@ -22,41 +21,41 @@ class Network() {
   }
 
   def train(
-    inputs: Seq[DenseVector[Double]],
-    tags: Seq[DenseVector[Double]],
-    calcError: (DenseVector[Double], DenseVector[Double]) => Double,
-    calcGrad: (DenseVector[Double], DenseVector[Double]) => DenseVector[Double],
+      inputs: Seq[DenseVector[Double]],
+      tags: Seq[DenseVector[Double]],
+      calcError: (DenseVector[Double], DenseVector[Double]) => Double,
+      calcGrad: (DenseVector[Double], DenseVector[Double]) => DenseVector[Double],
   ): (Double, List[DenseVector[Double]]) = {
-    var E = 0d
+    var E                             = 0d
     var ys: List[DenseVector[Double]] = Nil
-    for((x, t) <- (inputs zip tags)){
+    for ((x, t) <- (inputs zip tags)) {
       val y = predict(x)
       val d = calcGrad(y, t)
       E += calcError(y, t)
       ys = y :: ys
       update(d)
     }
-    (E,ys.reverse)
+    (E, ys.reverse)
   }
 
   def test(
-    inputs: Seq[DenseVector[Double]],
-    tags: Seq[DenseVector[Double]],
-    calcError: (DenseVector[Double], DenseVector[Double]) => Double,
+      inputs: Seq[DenseVector[Double]],
+      tags: Seq[DenseVector[Double]],
+      calcError: (DenseVector[Double], DenseVector[Double]) => Double,
   ): (Double, List[DenseVector[Double]]) = {
-    var E = 0d
+    var E                             = 0d
     var ys: List[DenseVector[Double]] = Nil
-    for((x, t) <- (inputs zip tags)){
+    for ((x, t) <- (inputs zip tags)) {
       val y = predict(x)
       reset()
       E += calcError(y, t)
       ys = y :: ys
     }
-    (E,ys.reverse)
+    (E, ys.reverse)
   }
 
   def backprop(d: DenseVector[Double]): DenseVector[Double] = {
-    var tmp = d
+    var tmp     = d
     val rLayers = layers.reverse
     for (rLayer <- rLayers) {
       tmp = rLayer.backward(tmp)
@@ -115,15 +114,15 @@ class batchNet() extends Network {
   }
 
   def batch_train(
-    inputs: Seq[DenseVector[Double]],
-    tags: Seq[DenseVector[Double]],
-    batchSize: Int,
-    calcError: (ADV, ADV) => Double,
-    calcGrad: (ADV, ADV) => ADV
+      inputs: Seq[DenseVector[Double]],
+      tags: Seq[DenseVector[Double]],
+      batchSize: Int,
+      calcError: (ADV, ADV) => Double,
+      calcGrad: (ADV, ADV) => ADV
   ) = {
-    var E = 0d
+    var E                                     = 0d
     var yslst: List[Seq[DenseVector[Double]]] = Nil
-    var unusedIdx = rand.shuffle(List.range(0, inputs.size))
+    var unusedIdx                             = rand.shuffle(List.range(0, inputs.size))
     while (unusedIdx.nonEmpty) {
       val batchMask = unusedIdx.take(batchSize)
       unusedIdx = unusedIdx.drop(batchSize)
@@ -144,7 +143,7 @@ class batchNet() extends Network {
 
   def backprop(ds: ADV): Array[DenseVector[Double]] = {
     // var tmp = ds.reverse
-    var tmp = ds
+    var tmp     = ds
     val rLayers = layers.reverse
     for (rLayer <- rLayers) {
       tmp = rLayer.backwards(tmp)

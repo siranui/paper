@@ -1,7 +1,7 @@
 //#full-example
 package com.lightbend.akka.sample
 
-import akka.actor.{ Actor, ActorLogging, ActorRef, ActorSystem, Props }
+import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
 import breeze.linalg._
 import scala.io.StdIn
 
@@ -9,7 +9,8 @@ import scala.io.StdIn
 //#greeter-messages
 object Greeter {
   //#greeter-messages
-  def props(message: String, printerActor: ActorRef): Props = Props(new Greeter(message, printerActor))
+  def props(message: String, printerActor: ActorRef): Props =
+    Props(new Greeter(message, printerActor))
   //#greeter-messages
   final case class Train(args: Array[String])
   final case class Plot(x: DenseVector[Double], counter: Int)
@@ -19,10 +20,9 @@ object Greeter {
 //#greeter-companion
 
 //#greeter-actor
-class Greeter(message: String, printerActor:ActorRef) extends Actor {
+class Greeter(message: String, printerActor: ActorRef) extends Actor {
   import Greeter._
   import Printer._
-
 
   def receive = {
     case Train(args) =>
@@ -56,10 +56,10 @@ class Printer extends Actor with ActorLogging {
     case Greeting(greeting) =>
       log.info(s"Greeting received (from ${sender()}): $greeting")
     case PlotHist(x, counter) =>
-      // pll.Bunpu.bunpu(x, counter)
+    // pll.Bunpu.bunpu(x, counter)
     case PlotHist2(x, counter, i, j) =>
-      // pll.Bunpu.bunpu2(x, counter)
-      // //Bunpu.bunpu2(vecs.reverse,i,2,(net.layers.size+1)/2)
+    // pll.Bunpu.bunpu2(x, counter)
+    // //Bunpu.bunpu2(vecs.reverse,i,2,(net.layers.size+1)/2)
   }
 }
 //#printer-actor
@@ -93,4 +93,3 @@ object AkkaQuickstart extends App {
 }
 //#main-class
 //#full-example
-

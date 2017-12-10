@@ -1,19 +1,18 @@
 package pll
 
-
 object set {
 
-  var Layers = List[List[String]]()
-  var Pad = List[Int]()
-  var Ch = List[Int]()
-  var InW = List[Int]()
-  var UpDown = List[String]()
-  var InitWeights = List[String]()
-  var SDs = List[Double]()
+  var Layers       = List[List[String]]()
+  var Pad          = List[Int]()
+  var Ch           = List[Int]()
+  var InW          = List[Int]()
+  var UpDown       = List[String]()
+  var InitWeights  = List[String]()
+  var SDs          = List[Double]()
   var UpdateMethod = List[String]()
-  var lrs = List[Double]()
-  var Filter_ws = List[Int]()
-  var Strides = List[Int]()
+  var lrs          = List[Double]()
+  var Filter_ws    = List[Int]()
+  var Strides      = List[Int]()
 
   def main(args: Array[String]) {
 
@@ -36,7 +35,8 @@ object set {
     val f = io.Source.fromFile(file).getLines.toList.filter(_.length != 0).filter(_.take(2) != "//")
     f.foreach { line =>
       line.split(":")(0).trim match {
-        case "Layers"       => Layers = line.split(":")(1).split(";").map(_.split(",").map(_.trim).toList).toList
+        case "Layers" =>
+          Layers = line.split(":")(1).split(";").map(_.split(",").map(_.trim).toList).toList
         case "Pad"          => Pad = line.split(":")(1).split(",").map(_.trim.toInt).toList
         case "Ch"           => Ch = line.split(":")(1).split(",").map(_.trim.toInt).toList
         case "InW"          => InW = line.split(":")(1).split(",").map(_.trim.toInt).toList
@@ -70,73 +70,140 @@ object set {
     for (i <- Layers.indices) {
       for (layer <- Layers(i)) {
         layer match {
-          case "P"  =>
+          case "P" =>
             net.add(new Pad(Ch(i), Pad(i), UpDown(i)))
-          case "C"  =>
+          case "C" =>
             if (UpDown(i) == "down") {
-              net.add(new Convolution(InW(i) + (2 * Pad(i)), Filter_ws(i), Ch(i + 1), Ch(i), Strides(i), InitWeights(i),
-                SDs(i), UpdateMethod(i), lrs(i)
-              )
-              )
-            } else {
-              net.add(new Convolution(InW(i) * (Pad(i) + 1) + Pad(i), Filter_ws(i), Ch(i + 1), Ch(i), Strides(i),
-                InitWeights(i), SDs(i), UpdateMethod(i), lrs(i)
-              )
-              )
+              net.add(
+                new Convolution(
+                  InW(i) + (2 * Pad(i)),
+                  Filter_ws(i),
+                  Ch(i + 1),
+                  Ch(i),
+                  Strides(i),
+                  InitWeights(i),
+                  SDs(i),
+                  UpdateMethod(i),
+                  lrs(i)))
             }
-          case "CC"  =>
+            else {
+              net.add(
+                new Convolution(
+                  InW(i) * (Pad(i) + 1) + Pad(i),
+                  Filter_ws(i),
+                  Ch(i + 1),
+                  Ch(i),
+                  Strides(i),
+                  InitWeights(i),
+                  SDs(i),
+                  UpdateMethod(i),
+                  lrs(i)))
+            }
+          case "CC" =>
             if (UpDown(i) == "down") {
-              net.add(new CSCConv(InW(i) + (2 * Pad(i)), Filter_ws(i), Ch(i + 1), Ch(i), Strides(i), InitWeights(i),
-                SDs(i), UpdateMethod(i), lrs(i)
-              )
-              )
-            } else {
-              net.add(new CSCConv(InW(i) * (Pad(i) + 1) + Pad(i), Filter_ws(i), Ch(i + 1), Ch(i), Strides(i),
-                InitWeights(i), SDs(i), UpdateMethod(i), lrs(i)
-              )
-              )
+              net.add(
+                new CSCConv(
+                  InW(i) + (2 * Pad(i)),
+                  Filter_ws(i),
+                  Ch(i + 1),
+                  Ch(i),
+                  Strides(i),
+                  InitWeights(i),
+                  SDs(i),
+                  UpdateMethod(i),
+                  lrs(i)))
             }
-          case "KC"  =>
+            else {
+              net.add(
+                new CSCConv(
+                  InW(i) * (Pad(i) + 1) + Pad(i),
+                  Filter_ws(i),
+                  Ch(i + 1),
+                  Ch(i),
+                  Strides(i),
+                  InitWeights(i),
+                  SDs(i),
+                  UpdateMethod(i),
+                  lrs(i)))
+            }
+          case "KC" =>
             if (UpDown(i) == "down") {
-              net.add(new k2rConv(InW(i) + (2 * Pad(i)), Filter_ws(i), Ch(i + 1), Ch(i), Strides(i), InitWeights(i),
-                SDs(i), UpdateMethod(i), lrs(i)
-              )
-              )
-            } else {
-              net.add(new k2rConv(InW(i) * (Pad(i) + 1) + Pad(i), Filter_ws(i), Ch(i + 1), Ch(i), Strides(i),
-                InitWeights(i), SDs(i), UpdateMethod(i), lrs(i)
-              )
-              )
+              net.add(
+                new k2rConv(
+                  InW(i) + (2 * Pad(i)),
+                  Filter_ws(i),
+                  Ch(i + 1),
+                  Ch(i),
+                  Strides(i),
+                  InitWeights(i),
+                  SDs(i),
+                  UpdateMethod(i),
+                  lrs(i)))
             }
-          case "IC"  =>
+            else {
+              net.add(
+                new k2rConv(
+                  InW(i) * (Pad(i) + 1) + Pad(i),
+                  Filter_ws(i),
+                  Ch(i + 1),
+                  Ch(i),
+                  Strides(i),
+                  InitWeights(i),
+                  SDs(i),
+                  UpdateMethod(i),
+                  lrs(i)))
+            }
+          case "IC" =>
             if (UpDown(i) == "down") {
-              net.add(new i2cConv(InW(i) + (2 * Pad(i)), Filter_ws(i), Ch(i + 1), Ch(i), Strides(i), InitWeights(i),
-                SDs(i), UpdateMethod(i), lrs(i)
-              )
-              )
-            } else {
-              net.add(new i2cConv(InW(i) * (Pad(i) + 1) + Pad(i), Filter_ws(i), Ch(i + 1), Ch(i), Strides(i),
-                InitWeights(i), SDs(i), UpdateMethod(i), lrs(i)
-              )
-              )
+              net.add(
+                new i2cConv(
+                  InW(i) + (2 * Pad(i)),
+                  Filter_ws(i),
+                  Ch(i + 1),
+                  Ch(i),
+                  Strides(i),
+                  InitWeights(i),
+                  SDs(i),
+                  UpdateMethod(i),
+                  lrs(i)))
             }
-          case "A"  =>
+            else {
+              net.add(
+                new i2cConv(
+                  InW(i) * (Pad(i) + 1) + Pad(i),
+                  Filter_ws(i),
+                  Ch(i + 1),
+                  Ch(i),
+                  Strides(i),
+                  InitWeights(i),
+                  SDs(i),
+                  UpdateMethod(i),
+                  lrs(i)))
+            }
+          case "A" =>
             // println(s"Affine: $i")
             // println(InW(i)*InW(i)*Ch(i))
             // println(InW(i+1)*InW(i+1)*Ch(i+1))
-            net.add(new Affine(InW(i)*InW(i)*Ch(i), InW(i+1)*InW(i+1)*Ch(i+1), InitWeights(i), SDs(i), UpdateMethod(i), lrs(i)))
+            net.add(
+              new Affine(
+                InW(i) * InW(i) * Ch(i),
+                InW(i + 1) * InW(i + 1) * Ch(i + 1),
+                InitWeights(i),
+                SDs(i),
+                UpdateMethod(i),
+                lrs(i)))
           case "BN" =>
             // net.add(new BatchNorm(UpdateMethod(i)))
-            net.add(new BNL(InW(i+1)*InW(i+1)*Ch(i+1),1))
-          case "R"  =>
+            net.add(new BNL(InW(i + 1) * InW(i + 1) * Ch(i + 1), 1))
+          case "R" =>
             net.add(new ReLU())
           case "LR" =>
             net.add(new LeakyReLU(0.02))
-          case "T"  =>
+          case "T" =>
             net.add(new Tanh())
-          case "S"  =>
+          case "S" =>
             net.add(new Sigmoid())
-          case _    =>
+          case _ =>
         }
       }
       // println("debug: " + net.layers(i))

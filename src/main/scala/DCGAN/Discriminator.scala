@@ -21,8 +21,8 @@ case class Discriminator() {
 object DiscriminatorTest {
   def main(args: Array[String]) {
 
-    val dis = Discriminator()
-    val noize = DenseVector.rand(784)
+    val dis     = Discriminator()
+    val noize   = DenseVector.rand(784)
     val d_noize = DenseVector.rand(1)
 
     val res_f = dis.model.predict(Array(noize, noize))

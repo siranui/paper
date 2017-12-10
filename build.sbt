@@ -1,24 +1,26 @@
 lazy val buildSettings = Seq(
-      scalaVersion := "2.12.3",
-      logLevel := Level.Info,
-      scalacOptions := Seq("-deprecation", "-feature", "-unchecked", "-Xlint"),
-      scalacOptions in (Compile, console) ~= (_.filterNot(_=="-Xlint"))
-      )
+  scalaVersion := "2.12.3",
+  logLevel := Level.Info,
+  scalacOptions := Seq("-deprecation", "-feature", "-unchecked", "-Xlint"),
+  scalacOptions in (Compile, console) ~= (_.filterNot(_ == "-Xlint"))
+)
 
 lazy val akkaVersion = "2.5.3"
 
+lazy val scalafmtConfig = file(".scalafmt.conf")
+
 libraryDependencies ++= Seq(
-  "org.scalanlp" %% "breeze"         % "0.13",
-  "org.scalanlp" %% "breeze-natives" % "0.13",
-  "org.scalanlp" %% "breeze-viz"     % "0.13",
-  "com.github.fommil.netlib" % "all" % "1.1.2" pomOnly()
+  "org.scalanlp"             %% "breeze"         % "0.13",
+  "org.scalanlp"             %% "breeze-natives" % "0.13",
+  "org.scalanlp"             %% "breeze-viz"     % "0.13",
+  "com.github.fommil.netlib" % "all"             % "1.1.2" pomOnly ()
 )
 
 libraryDependencies ++= Seq(
-  "com.typesafe.akka" %% "akka-actor" % akkaVersion,
-  "com.typesafe.akka" %% "akka-testkit" % akkaVersion,
-  "org.scala-lang.modules" %% "scala-swing" % "2.0.0-M2",
-  "org.scalatest" %% "scalatest" % "3.0.3" % "test",
+  "com.typesafe.akka"      %% "akka-actor"   % akkaVersion,
+  "com.typesafe.akka"      %% "akka-testkit" % akkaVersion,
+  "org.scala-lang.modules" %% "scala-swing"  % "2.0.0-M2",
+  "org.scalatest"          %% "scalatest"    % "3.0.3" % "test",
 )
 
 resolvers ++= Seq(
@@ -27,7 +29,5 @@ resolvers ++= Seq(
 )
 
 lazy val root = (project in file("."))
-  .settings( buildSettings: _* )
-  .settings( name := "paper" )
-
-
+  .settings(buildSettings: _*)
+  .settings(name := "paper")

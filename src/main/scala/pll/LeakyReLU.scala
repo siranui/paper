@@ -1,6 +1,5 @@
 package pll
 
-
 import breeze.linalg._
 
 case class LeakyReLU(alpha: Double = 0.02) extends Layer {

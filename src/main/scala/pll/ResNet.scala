@@ -4,7 +4,7 @@ import breeze.linalg._
 
 case class ResNet(L: Seq[Layer]) extends Layer {
 
-  type T = Double
+  type T  = Double
   type DV = DenseVector[T]
   type DM = DenseMatrix[T]
 

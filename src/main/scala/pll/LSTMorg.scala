@@ -1,9 +1,15 @@
 package pll
 
 import breeze.linalg._
-import breeze.numerics.{ sigmoid, tanh }
+import breeze.numerics.{sigmoid, tanh}
 
-class LSTMorg(val xn: Int, val hn: Int, val dist: String, var n: Double, val u: String, val a: Double) extends Layer {
+class LSTMorg(val xn: Int,
+              val hn: Int,
+              val dist: String,
+              var n: Double,
+              val u: String,
+              val a: Double)
+    extends Layer {
 
   var Ft = List[DenseVector[Double]]()
   var It = List[DenseVector[Double]]()
@@ -104,7 +110,9 @@ class LSTMorg(val xn: Int, val hn: Int, val dist: String, var n: Double, val u: 
     Hr.head
   }
 
-  def forward(x: DenseVector[Double], H: DenseVector[Double], C: DenseVector[Double]): DenseVector[Double] = {
+  def forward(x: DenseVector[Double],
+              H: DenseVector[Double],
+              C: DenseVector[Double]): DenseVector[Double] = {
     Hr = H :: Hr
     Cr = C :: Cr
     forward(x)
@@ -154,7 +162,9 @@ class LSTMorg(val xn: Int, val hn: Int, val dist: String, var n: Double, val u: 
     dz(hn until dz.size)
   }
 
-  def backward(dh: DenseVector[Double], N: DenseVector[Double], C: DenseVector[Double]): DenseVector[Double] = {
+  def backward(dh: DenseVector[Double],
+               N: DenseVector[Double],
+               C: DenseVector[Double]): DenseVector[Double] = {
     dN = N
     dC = C
     backward(dh)
@@ -216,13 +226,9 @@ class LSTMorg(val xn: Int, val hn: Int, val dist: String, var n: Double, val u: 
     dN = DenseVector.zeros[Double](hn)
   }
 
-  def save(filename: String): Unit = {
+  def save(filename: String): Unit = {}
 
-  }
-
-  def load(filename: String): Unit = {
-
-  }
+  def load(filename: String): Unit = {}
 
   def load(data: List[String]): List[String] = {
     data
