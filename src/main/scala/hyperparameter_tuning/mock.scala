@@ -17,7 +17,10 @@ case class cifar10_net(distr: String = "Xavier",
                        update_method: String = "Adam",
                        lr: Double = 0d) {
   val model = new batchNet()
-  model.add(new Affine(3 * 32 * 32, 10, distr, SD, update_method, lr))
+  model.add(new i2cConv(32, 5, 16, 3, 3, distr, SD, update_method, lr))
+  model.add(new ReLU())
+  model.add(new Affine(16 * 10 * 10, 10, distr, SD, update_method, lr))
+  // model.add(new Affine(3 * 32 * 32, 10, distr, SD, update_method, lr))
   model.add(new SoftMax())
 }
 
@@ -35,11 +38,6 @@ object cifar10_net_builder extends NB {
 }
 
 object mock {
-  // // types
-  // type T       = Double
-  // type DV      = DenseVector[T]
-  // type DM      = DenseMatrix[T]
-  // type DATASET = Array[(DV, DV)]
 
   // params
   var train_size = 50000

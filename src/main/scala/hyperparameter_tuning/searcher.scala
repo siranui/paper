@@ -7,9 +7,9 @@ import akka.util.Timeout
 import breeze.linalg._
 import pll.typeAlias._
 import scala.concurrent.duration._
-// import scala.concurrent.{Await, Future}
+import scala.concurrent.Await
 
-case class Conditions(cond: Seq[Any]*) // TODO: パラメータの条件の表し方を考える
+case class Conditions(cond: Seq[Any]*)
 case class Condition(cond: Any*)
 case class InterimResult(interimResult: Double)
 case class Result(cond: Condition, result: Double)
@@ -26,13 +26,10 @@ class Controler(nwb: NB, train_set: DATASET, test_set: DATASET, conditions: Cond
     extends Actor {
   import context._
 
-  // 子のアクターを生成
-  // TODO: Trainerの引数を修正
+  // Generate Chile Actor.
   val trainer = actorOf(Props(new Trainer(nwb, train_set, test_set)), "trainer")
   context.watch(trainer)
 
-  var num_cond = 0
-  var num_fin  = 0
 
   var resMap = Map[Condition, Double]()
 
@@ -45,20 +42,17 @@ class Controler(nwb: NB, train_set: DATASET, test_set: DATASET, conditions: Cond
         update_method <- conditions.cond(2)
         lr            <- conditions.cond(3)
       } {
-        num_cond += 1
         trainer ! Condition(distr, SD, update_method, lr)
       }
     case Result(c, res) =>
-      num_fin += 1
       println(res)
       resMap += c -> res
-      if (num_fin == num_cond) {
-        context.stop(trainer)
-      }
-    case Terminated(trainer) =>
+      sender() ! PoisonPill // stop child actor
+    case Terminated(trainer) => // trainerが全て終了した時の処理
       println(resMap.toArray.sortBy(_._2).reverse.take(10).toList)
       println(s"trainer: Terminated.")
-      context.stop(self)
+      // context.stop(self)
+      context.system.terminate()
   }
 }
 
@@ -74,7 +68,7 @@ class Trainer(nwb: NB, train_set: DATASET, test_set: DATASET) extends Actor {
 
   def receive = {
     case c: Condition =>
-      // TODO: 与えられた条件で学習
+      // 与えられた条件で学習
       val distr         = c.cond(0).toString
       val SD            = c.cond(1).asInstanceOf[Double]
       val update_method = c.cond(2).toString
@@ -84,12 +78,13 @@ class Trainer(nwb: NB, train_set: DATASET, test_set: DATASET) extends Actor {
 
       val (train_err, train_acc, test_err, test_acc) = mock.train(net, train_set, test_set)
 
+      println(s"$distr, $SD, $update_method, $lr")
       println(s"$train_err\t${train_acc}\t$test_err\t${test_acc}")
 
       // TODO: 学習の途中結果を返す
       // sender ! InterimResult(???)
 
-      // TODO: 学習終了時に結果を返す
+      // Return result when training finished.
       sender ! Result(c, test_acc.asInstanceOf[Double])
   }
 
@@ -98,11 +93,11 @@ class Trainer(nwb: NB, train_set: DATASET, test_set: DATASET) extends Actor {
 object Main {
 
   def main(args: Array[String]) {
+
     mock.args_process(args)
 
-    //----------------------------------------------------------------------------//
 
-    // 3. 探索するハイパーパラメータを列挙
+    // 探索するハイパーパラメータを列挙
     val distrs         = Seq("Xavier", "He", "Gaussian", "Uniform")
     val SDs            = linspace(0.01, 10, 4).toArray.toSeq
     val update_methods = Seq("SGD", "AdaGrad", "RMSProp", "Adam")
@@ -114,11 +109,10 @@ object Main {
     val train_set: DATASET = train_data zip train_tag
     val test_set: DATASET  = test_data zip test_tag
 
-    // var tAccs = Map[(String, Double, String, Double), Double]()
 
     implicit val timeout = Timeout(1000.milliseconds)
 
-    // actorの生成
+    // Generate Actor System
     val system = ActorSystem("system")
     val controler = system.actorOf(
       Props(
@@ -130,9 +124,9 @@ object Main {
 
     controler ! "grid"
 
-    // println(system.getState)
-    Thread.sleep(100000)
+    // system.terminate が呼ばれるまで待機する
+    Await.ready(system.whenTerminated, Duration.Inf)
+    println("\n\n\nComplete.\n\n\n")
 
-    system.terminate
   }
 }
