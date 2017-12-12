@@ -72,7 +72,8 @@ object font_GLO {
 
     var Z = Array.ofDim[DenseVector[Double]](ds)
     Z = Z.map(dv => DenseVector.fill(100) { rand.nextGaussian })
-    val train_d = read("/home/yuya/fonts/tmp/AGENCYB/AGENCYB-d.txt", ds)
+    val HOME    = sys.env("HOME")
+    val train_d = read(s"$HOME/fonts/tmp/AGENCYB/AGENCYB-d.txt", ds)
     // val train_d = read_labo("data/cifar10/train-d.txt", ds)
 
     val dataset: Array[(DenseVector[Double], DenseVector[Double])] = Z zip train_d
