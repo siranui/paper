@@ -80,28 +80,6 @@ object batch_font_GLO {
       }
     }
 
-    // TODO: 関数化する
-    // make network
-    // 100(1*10*10) -> 10*4*4 -> 5*8*8 -> 3*16*16 -> 1*32*32
-
-    // val g = new batch_font_GLO(LapDir)
-
-    // g.add(new Pad(1, 1, "down"))
-    //   .add(new Convolution(12, 3, 10, 1, 3, "He", 1d, up, lr))
-    // if (doBatchNorm) g.add(new BatchNorm(up))
-    // g.add(new ReLU())
-    //   .add(new Pad(10, pad, "up"))
-    //   .add(new Convolution(4 * (pad + 1) + pad, fil_w, 5, 10, stride, "He", 1d, up, lr))
-    // if (doBatchNorm) g.add(new BatchNorm(up))
-    // g.add(new ReLU())
-    //   .add(new Pad(5, pad, "up"))
-    //   .add(new Convolution(8 * (pad + 1) + pad, fil_w, 3, 5, stride, "He", 1d, up, lr))
-    // if (doBatchNorm) g.add(new BatchNorm(up))
-    // g.add(new ReLU())
-    //   .add(new Pad(3, pad, "up"))
-    //   .add(new Convolution(16 * (pad + 1) + pad, fil_w, 1, 3, stride, "Xavier", 1d, up, lr))
-    //   .add(new Tanh())
-
     val g: batch_font_GLO = set.connectNetwork(new batch_font_GLO(LapDir))
     g.layers.foreach(println)
 
