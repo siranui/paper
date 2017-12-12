@@ -1,7 +1,7 @@
 package pll
 
 import breeze.linalg._
-import breeze.numerics._
+// import breeze.numerics._
 
 case class Pooling(window_height: Int, window_width: Int)(ch: Int,
                                                           input_height: Int,
@@ -33,7 +33,7 @@ case class Pooling(window_height: Int, window_width: Int)(ch: Int,
     this.input = this.input.tail
 
     val in_mat = reshape(in, input_width, input_height * ch).t
-    var retval = DenseMatrix.zeros[Double](in_mat.rows, in_mat.cols)
+    val retval = DenseMatrix.zeros[Double](in_mat.rows, in_mat.cols)
     for {
       i <- 0 until input_height * ch by window_height
       j <- 0 until input_width by window_width

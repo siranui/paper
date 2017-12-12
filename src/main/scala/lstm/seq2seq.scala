@@ -38,7 +38,7 @@ object seq2seq {
 
     val encoder = Array(new LSTMorg(V.vocab.size, node, "Xavier", 0.1, "Adam", 0.01))
 
-    var decoder = Array(
+    val decoder = Array(
       new LSTMorg(V.vocab.size, node, "Xavier", 0.1, "Adam", 0.01),
       new Affine(node, V.vocab.size, "Xavier", 0.1, "Adam", 0.01),
       new SoftMax()
@@ -47,26 +47,26 @@ object seq2seq {
     val window = 10
 
     val tr_d: List[List[DenseVector[Double]]] = (for (idx <- 0 until ds - 2 * window) yield {
-      var l = (for (i <- idx until idx + window) yield {
+      val l = (for (i <- idx until idx + window) yield {
         utils.oneHot(V.indexOf(data(i)), V.vocab.size)
       }).toList
       (EOS :: l.reverse).reverse
     }).toList
     val tr_t = (for (idx <- window until ds - window) yield {
-      var l = (for (i <- idx until idx + window) yield {
+      val l = (for (i <- idx until idx + window) yield {
         utils.oneHot(V.indexOf(data(i)), V.vocab.size)
       }).toList
       (EOS :: l.reverse).reverse
     }).toList
 
     val te_d: List[List[DenseVector[Double]]] = (for (idx <- ds until ds + ts - 2 * window) yield {
-      var l = (for (i <- idx until idx + window) yield {
+      val l = (for (i <- idx until idx + window) yield {
         utils.oneHot(V.indexOf(data(i)), V.vocab.size)
       }).toList
       (EOS :: l.reverse).reverse
     }).toList
     val te_t = (for (idx <- ds + window until ds + ts - window) yield {
-      var l = (for (i <- idx until idx + window) yield {
+      val l = (for (i <- idx until idx + window) yield {
         utils.oneHot(V.indexOf(data(i)), V.vocab.size)
       }).toList
       (EOS :: l.reverse).reverse
@@ -90,7 +90,7 @@ object seq2seq {
 
         val (hr, cr) = encoder(0).HRCR()
 
-        var dt = decoder(0).asInstanceOf[LSTMorg]
+        val dt = decoder(0).asInstanceOf[LSTMorg]
         dt.Hr = List(hr); dt.Cr = List(cr)
         decoder(0) = dt
 
@@ -154,7 +154,7 @@ object seq2seq {
 
         val ddd: LSTMorg = decoder(0).asInstanceOf[LSTMorg]
         val (dn, dc)     = ddd.DNDC()
-        var et           = encoder(0).asInstanceOf[LSTMorg]
+        val et           = encoder(0).asInstanceOf[LSTMorg]
         et.dN = dn; et.dC = dc
         encoder(0) = et
 
@@ -174,7 +174,7 @@ object seq2seq {
 
         val (hr, cr) = encoder(0).HRCR()
 
-        var dt = decoder(0).asInstanceOf[LSTMorg]
+        val dt = decoder(0).asInstanceOf[LSTMorg]
         dt.Hr = List(hr); dt.Cr = List(cr)
         decoder(0) = dt
 

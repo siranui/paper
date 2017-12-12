@@ -1,7 +1,7 @@
 package pll
 
 import breeze.linalg._
-import breeze.stats.mean
+// import breeze.stats.mean
 
 trait addKeyWord {
   implicit class Debug(str: String) {

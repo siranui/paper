@@ -1,5 +1,5 @@
 lazy val buildSettings = Seq(
-  scalaVersion := "2.12.3",
+  scalaVersion := "2.12.4",
   logLevel := Level.Info,
   scalacOptions := Seq("-deprecation", "-feature", "-unchecked", "-Xlint"),
   scalacOptions in (Compile, console) ~= (_.filterNot(_ == "-Xlint"))
