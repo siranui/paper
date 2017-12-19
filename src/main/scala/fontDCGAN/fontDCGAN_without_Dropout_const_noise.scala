@@ -3,7 +3,7 @@ package fontDCGAN
 import pll._
 import breeze.linalg._
 
-object atFontDCGAN {
+object atFontDCGAN_without_Dropout_const_noise {
   // parameter
   var TRAIN_DATA           = "data/fonts/font-all-d.txt"
   var DATA_SIZE            = 10000
@@ -15,8 +15,8 @@ object atFontDCGAN {
   var LOAD_PARAM_G         = ""
   var LOAD_PARAM_D         = ""
 
-  val D = Discriminator() // Loss-func is 'cross entropy'
-  val G = Generator()     // Loss-func is 'cross entropy'
+  val D = Discriminator_without_Dropout() // Loss-func is 'cross entropy'
+  val G = Generator()                     // Loss-func is 'cross entropy'
 
   def train(BATCH_SIZE: Int, NUM_EPOCH: Int)(TRAIN_DATA: String, DATA_SIZE: Int)(
       TEST_DATA: String,
@@ -42,13 +42,14 @@ object atFontDCGAN {
     val num_batches = (train_d.size / BATCH_SIZE).toInt
     println(s"Number of Batches: $num_batches")
 
+    val noise = Array.fill(DATA_SIZE) { DenseVector.fill(100) { util.Random.nextDouble } }
+
     for (epoch <- 0 until NUM_EPOCH) {
 
       for (index <- 0 until num_batches) {
 
-        val noise           = Array.fill(BATCH_SIZE) { DenseVector.fill(100) { util.Random.nextDouble } }
         val image_batch     = train_d.slice(index * BATCH_SIZE, (index + 1) * BATCH_SIZE)
-        val generated_image = G.model.predict(noise)
+        val generated_image = G.model.predict(noise.drop(index * BATCH_SIZE).take(BATCH_SIZE))
         G.model.reset()
 
         // TODO: Now this if-state is save data.
@@ -69,10 +70,8 @@ object atFontDCGAN {
         D.model.update(d_grads)
 
         // Update Generator
-        val noise2 = Array.fill(BATCH_SIZE) { DenseVector.fill(100) { util.Random.nextDouble } }
-        //val (g_loss, g_ys_list) = dcgan.model.batch_train(noise2, Array.fill(BATCH_SIZE){ DenseVector(1d) }, BATCH_SIZE, err.calc_cross_entropy_loss, grad.calc_cross_entropy_grad)
 
-        val gen      = G.model.predict(noise2)
+        val gen      = G.model.predict(noise.drop(index * BATCH_SIZE).take(BATCH_SIZE))
         val dis      = D.model.predict(gen)
         val g_loss   = err.calc_cross_entropy_loss(dis, Array.fill(BATCH_SIZE) { DenseVector(1d) })
         val gd_grads = grad.calc_cross_entropy_grad(dis, Array.fill(BATCH_SIZE) { DenseVector(1d) })

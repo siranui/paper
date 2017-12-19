@@ -16,6 +16,13 @@ object param {
   var display         = false
   var saveTime        = 10
 
+  var distr         = "He"
+  var SD            = 0.01
+  var update_method = "Adam,0.5,0.999,1e-8"
+  var lr            = 2e-4
+
+  var LOAD_PARAM_G = ""
+
   def setParamFromArgs(args: Array[String]): Unit = {
     var i = 0
     while (i < args.length) {
@@ -58,6 +65,21 @@ object param {
           i += 2
         case "--display" =>
           display = args(i + 1).toBoolean
+          i += 2
+        case "--load-param-g" =>
+          LOAD_PARAM_G = args(i + 1)
+          i += 2
+        case "--distr" =>
+          distr = args(i + 1)
+          i += 2
+        case "--standard-deviation" =>
+          SD = args(i + 1).toDouble
+          i += 2
+        case "--update-method" =>
+          update_method = args(i + 1)
+          i += 2
+        case "--learning-rate" =>
+          lr = args(i + 1).toDouble
           i += 2
         case _ =>
           println(s"unknown option:${args(i)}")

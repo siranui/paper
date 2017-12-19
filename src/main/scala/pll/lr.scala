@@ -7,6 +7,10 @@ trait Opt {
              ds: Array[DenseVector[Double]]): Array[DenseVector[Double]];
   def register(ps: Array[DenseMatrix[Double]]);
   def register(ps: Array[DenseVector[Double]]);
+  def save(fn: String);
+  def save_(pw: java.io.PrintWriter): java.io.PrintWriter = pw;
+  def load(fn: String);
+  def load(data: List[String]): List[String] = data;
 }
 object Opt {
   def create(name: String, lr: Double) = {
@@ -79,6 +83,8 @@ class SGD(var lr: Double = 0.01) extends Opt {
     }
     us
   }
+  def save(fn: String) {}
+  def load(fn: String) {}
 }
 
 class Momentum(var lr: Double = 0.01, var momentum: Double = 0.9) extends Opt {
@@ -116,6 +122,8 @@ class Momentum(var lr: Double = 0.01, var momentum: Double = 0.9) extends Opt {
     }
     us
   }
+  def save(fn: String) {}
+  def load(fn: String) {}
 }
 
 class AdaGrad(var lr: Double = 0.01, var epsilon: Double = 1e-8) extends Opt {
@@ -153,6 +161,8 @@ class AdaGrad(var lr: Double = 0.01, var epsilon: Double = 1e-8) extends Opt {
     }
     us
   }
+  def save(fn: String) {}
+  def load(fn: String) {}
 }
 
 class Adam(val lr: Double = 0.001,
@@ -164,7 +174,8 @@ class Adam(val lr: Double = 0.001,
   var hms = Array[DenseMatrix[Double]]()
   var vvs = Array[DenseVector[Double]]()
   var hvs = Array[DenseVector[Double]]()
-  var t   = 0
+  var tm  = 0
+  var tv  = 0
 
   def register(ps: Array[DenseMatrix[Double]]) {
     hms = new Array[DenseMatrix[Double]](ps.size)
@@ -186,7 +197,8 @@ class Adam(val lr: Double = 0.001,
 
   def update(ps: Array[DenseMatrix[Double]],
              ds: Array[DenseMatrix[Double]]): Array[DenseMatrix[Double]] = {
-    t += 1
+    tm += 1
+    val t  = tm
     val us = new Array[DenseMatrix[Double]](ps.size)
     for (i <- 0 until ps.size) {
       vms(i) = beta1 * vms(i) + (1d - beta1) * ds(i)
@@ -200,7 +212,8 @@ class Adam(val lr: Double = 0.001,
 
   def update(ps: Array[DenseVector[Double]],
              ds: Array[DenseVector[Double]]): Array[DenseVector[Double]] = {
-    t += 1
+    tv += 1
+    val t  = tv
     val us = new Array[DenseVector[Double]](ps.size)
     for (i <- 0 until ps.size) {
       vvs(i) = beta1 * vvs(i) + (1d - beta1) * ds(i)
@@ -210,6 +223,169 @@ class Adam(val lr: Double = 0.001,
       us(i) = lr * vvvs /:/ (hhvs.map(Math.sqrt) + epsilon)
     }
     us
+  }
+  def save(fn: String) {
+    val fos = new java.io.FileOutputStream(fn + "-opt.txt", false)
+    val osw = new java.io.OutputStreamWriter(fos, "UTF-8")
+    val pw  = new java.io.PrintWriter(osw)
+    for (k <- 0 until hms.size) {
+      for (i <- 0 until hms(k).rows) {
+        for (j <- 0 until hms(k).cols) {
+          pw.write(hms(k)(i, j).toString)
+          pw.write(",")
+        }
+      }
+      pw.write("\n")
+    }
+    for (k <- 0 until vms.size) {
+      for (i <- 0 until vms(k).rows) {
+        for (j <- 0 until vms(k).cols) {
+          pw.write(vms(k)(i, j).toString)
+          pw.write(",")
+        }
+      }
+      pw.write("\n")
+    }
+    for (k <- 0 until hvs.size) {
+      for (i <- 0 until hvs(k).size) {
+        pw.write(hvs(k)(i).toString)
+        pw.write(",")
+      }
+      pw.write("\n")
+    }
+    for (k <- 0 until vvs.size) {
+      for (i <- 0 until vvs(k).size) {
+        pw.write(vvs(k)(i).toString)
+        pw.write(",")
+      }
+      pw.write("\n")
+    }
+    pw.write(tm.toString)
+    pw.write("\n")
+    pw.write(tv.toString)
+    pw.write("\n")
+    pw.close()
+  }
+
+  override def save_(pw: java.io.PrintWriter): java.io.PrintWriter = {
+    for (k <- 0 until hms.size) {
+      for (i <- 0 until hms(k).rows) {
+        for (j <- 0 until hms(k).cols) {
+          pw.write(hms(k)(i, j).toString)
+          pw.write(",")
+        }
+      }
+      pw.write("\n")
+    }
+    for (k <- 0 until vms.size) {
+      for (i <- 0 until vms(k).rows) {
+        for (j <- 0 until vms(k).cols) {
+          pw.write(vms(k)(i, j).toString)
+          pw.write(",")
+        }
+      }
+      pw.write("\n")
+    }
+    for (k <- 0 until hvs.size) {
+      for (i <- 0 until hvs(k).size) {
+        pw.write(hvs(k)(i).toString)
+        pw.write(",")
+      }
+      pw.write("\n")
+    }
+    for (k <- 0 until vvs.size) {
+      for (i <- 0 until vvs(k).size) {
+        pw.write(vvs(k)(i).toString)
+        pw.write(",")
+      }
+      pw.write("\n")
+    }
+    pw.write(tm.toString)
+    pw.write("\n")
+    pw.write(tv.toString)
+    pw.write("\n")
+    pw
+  }
+
+  def load(fn: String) {
+    val str = io.Source.fromFile(fn + "-opt.txt").getLines.toArray.map(_.split(",").map(_.toDouble))
+    var num = 0
+    for (k <- 0 until hms.size) {
+      for (i <- 0 until hms(k).rows) {
+        for (j <- 0 until hms(k).cols) {
+          hms(k)(i, j) = str(num)(hms(k).cols * i + j)
+        }
+      }
+      num += 1
+    }
+    for (k <- 0 until vms.size) {
+      for (i <- 0 until vms(k).rows) {
+        for (j <- 0 until vms(k).cols) {
+          vms(k)(i, j) = str(num)(vms(k).cols * i + j)
+        }
+      }
+      num += 1
+    }
+    for (k <- 0 until hvs.size) {
+      for (i <- 0 until hvs(k).size) {
+        hvs(k)(i) = str(num)(i)
+      }
+      num += 1
+    }
+    for (k <- 0 until vvs.size) {
+      for (i <- 0 until vvs(k).size) {
+        vvs(k)(i) = str(num)(i)
+      }
+      num += 1
+    }
+    tm = str(num)(0).toInt
+    num += 1
+    tv = str(num)(0).toInt
+  }
+
+  override def load(data: List[String]): List[String] = {
+    val str = data.map(_.split(",").map(_.toDouble))
+    println(s"adam-load:")
+    var num = 0
+    for (k <- 0 until hms.size) {
+      println(s"\thms($k):${hms(k).size}, loaded: ${str(num).size}")
+      for (i <- 0 until hms(k).rows) {
+        for (j <- 0 until hms(k).cols) {
+          hms(k)(i, j) = str(num)(hms(k).cols * i + j).toDouble
+        }
+      }
+      num += 1
+    }
+    for (k <- 0 until vms.size) {
+      println(s"\tvms($k):${vms(k).size}, loaded: ${str(num).size}")
+      for (i <- 0 until vms(k).rows) {
+        for (j <- 0 until vms(k).cols) {
+          vms(k)(i, j) = str(num)(vms(k).cols * i + j)
+        }
+      }
+      num += 1
+    }
+    for (k <- 0 until hvs.size) {
+      println(s"\thvs($k):${hvs(k).size}, loaded: ${str(num).size}")
+      for (i <- 0 until hvs(k).size) {
+        hvs(k)(i) = str(num)(i)
+      }
+      num += 1
+    }
+    for (k <- 0 until vvs.size) {
+      println(s"\tvvs($k):${vvs(k).size}, loaded: ${str(num).size}")
+      for (i <- 0 until vvs(k).size) {
+        vvs(k)(i) = str(num)(i)
+      }
+      num += 1
+    }
+    println(s"\ttm:${tm}, loaded: ${str(num).size}")
+    tm = str(num)(0).toInt
+    num += 1
+
+    println(s"\ttv:${tv}, loaded: ${str(num).size}")
+    tv = str(num)(0).toInt
+    data.drop(num + 1)
   }
 }
 
@@ -251,4 +427,6 @@ class RMSProp(val lr: Double = 0.001, val beta: Double = 0.9, val epsilon: Doubl
     }
     us
   }
+  def save(fn: String) {}
+  def load(fn: String) {}
 }

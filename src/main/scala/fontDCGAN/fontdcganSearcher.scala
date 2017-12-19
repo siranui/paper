@@ -11,7 +11,8 @@ import scala.concurrent.duration._
 import scala.concurrent.Await
 
 object Controler {
-  def props(nwb: NB, train_data: Array[DV], conditions: Conditions)(implicit nrOfThread: Int = 4) = Props(new Controler(nwb, train_data, conditions)(nrOfThread))
+  def props(nwb: NB, train_data: Array[DV], conditions: Conditions)(implicit nrOfThread: Int = 4) =
+    Props(new Controler(nwb, train_data, conditions)(nrOfThread))
 }
 
 /**
@@ -20,20 +21,22 @@ object Controler {
   * @param nwb NetworkBuilder
   * @param train_data train data.
   * @param Conditions Conditions that we want to try.
-  * 
+  *
   * @param nrOfThread number of thread.
   */
-class Controler(nwb: NB, train_data: Array[DV], conditions: Conditions)(implicit nrOfThread: Int = 4)
-    extends Actor with ActorLogging {
+class Controler(nwb: NB, train_data: Array[DV], conditions: Conditions)(
+    implicit nrOfThread: Int = 4)
+    extends Actor
+    with ActorLogging {
   import context._
 
-  def createTrainer(name:String) = {
+  def createTrainer(name: String) = {
     context.actorOf(Trainer.props(nwb, train_data), name)
     // context.actorOf(Props(new Trainer(nwb, train_set, test_set)), name)
   }
 
   // Generate Chile Actor.
-  val trainers = (0 until nrOfThread).map(i => createTrainer("trainer-"+i))
+  val trainers = (0 until nrOfThread).map(i => createTrainer("trainer-" + i))
   trainers.map(trainer => context.watch(trainer))
 
   var terminated = 0
@@ -50,10 +53,10 @@ class Controler(nwb: NB, train_data: Array[DV], conditions: Conditions)(implicit
         update_method <- conditions.cond(2)
         lr            <- conditions.cond(3)
       } {
-        trainers(i%nrOfThread) ! Condition(distr, SD, update_method, lr) 
+        trainers(i % nrOfThread) ! Condition(distr, SD, update_method, lr)
 
-        i+=1
-        if(i>10000) i = 0
+        i += 1
+        if (i > 10000) i = 0
       }
 
     case Result(c, res) =>
@@ -66,9 +69,14 @@ class Controler(nwb: NB, train_data: Array[DV], conditions: Conditions)(implicit
 
       log.info(s"nrOfTerminated: $terminated")
 
-      if(terminated == nrOfThread){ // trainerが全て終了した時の処理
+      if (terminated == nrOfThread) { // trainerが全て終了した時の処理
         println("\n\n\n")
-        resMap.toArray.sortBy(_._2).reverse.take(10).toList.foreach(p => println(s"conditon:${p._1.toString}\ttest acc:${p._2}"))
+        resMap.toArray
+          .sortBy(_._2)
+          .reverse
+          .take(10)
+          .toList
+          .foreach(p => println(s"conditon:${p._1.toString}\ttest acc:${p._2}"))
         println("\n\n\n")
         log.info(s"trainer: Terminated.")
         println("\n\n\n")
@@ -78,7 +86,6 @@ class Controler(nwb: NB, train_data: Array[DV], conditions: Conditions)(implicit
 
   }
 }
-
 
 object Trainer {
   def props(nwb: NB, train_data: Array[DV]) = Props(new Trainer(nwb, train_data))
@@ -120,42 +127,40 @@ class Trainer(nwb: NB, train_data: Array[DV]) extends Actor with ActorLogging {
 
 }
 
-
 object searchMain {
 
   def main(args: Array[String]) {
 
     atFontDCGAN2.args_process(args)
 
+    // 探索するハイパーパラメータを列挙
+    val distrs         = Seq("Xavier", "He", "Gaussian", "Uniform")
+    val SDs            = linspace(0.01, 10, 4).toArray.toSeq
+    val update_methods = Seq("SGD", "AdaGrad", "RMSProp", "Adam")
+    val lrs            = linspace(0.01, 10, 4).toArray.toSeq
 
-      // 探索するハイパーパラメータを列挙
-      val distrs         = Seq("Xavier", "He", "Gaussian", "Uniform")
-      val SDs            = linspace(0.01, 10, 4).toArray.toSeq
-      val update_methods = Seq("SGD", "AdaGrad", "RMSProp", "Adam")
-      val lrs            = linspace(0.01, 10, 4).toArray.toSeq
+    println("--- data loading ---")
+    val train_data: Array[DV] = atFontDCGAN2.data_load()
 
-      println("--- data loading ---")
-      val train_data: Array[DV] = atFontDCGAN2.data_load()
+    implicit val timeout = Timeout(1000.milliseconds)
 
-      implicit val timeout = Timeout(1000.milliseconds)
+    // Generate Actor System
+    val system = ActorSystem("system")
+    val controler = system.actorOf(
+      Props(
+        new Controler(
+          cifar10_net_builder,
+          train_data,
+          Conditions(distrs, SDs, update_methods, lrs))(
+          nrOfThread = 8
+        )
+      ))
 
-      // Generate Actor System
-      val system = ActorSystem("system")
-      val controler = system.actorOf(
-          Props(
-            new Controler(
-              cifar10_net_builder,
-              train_data,
-              Conditions(distrs, SDs, update_methods, lrs))(
-              nrOfThread = 8
-              )
-            ))
+    controler ! "grid"
 
-      controler ! "grid"
-
-      // system.terminate が呼ばれるまで待機する
-      Await.ready(system.whenTerminated, Duration.Inf)
-      println("\n\n\nComplete.\n\n\n")
+    // system.terminate が呼ばれるまで待機する
+    Await.ready(system.whenTerminated, Duration.Inf)
+    println("\n\n\nComplete.\n\n\n")
 
   }
 }

@@ -7,7 +7,7 @@ class BNL(var xn: Int, var bn: Int) extends Layer {
   var gamma = DenseVector.ones[Double](xn)
   gamma = Gaussian(xn, 0.01).map(_ + 1d)
   var dgamma   = DenseVector.zeros[Double](xn)
-  var eps      = 1e-5
+  val eps      = 1e-5
   var xhat     = new Array[DenseVector[Double]](0)
   var xmu      = new Array[DenseVector[Double]](0)
   var ivar     = DenseVector[Double]()
@@ -137,18 +137,97 @@ class BNL(var xn: Int, var bn: Int) extends Layer {
       }
     }
     pw.write("\n")
+
+    pw.write(allvaria.toArray.mkString(","))
+    //pw.write(",")
+    pw.write("\n")
+
+    pw.write(allmu.toArray.mkString(","))
+    pw.write("\n")
+
     pw.close()
+
+    opt.save(fn)
+  }
+
+  override def save_(pw: java.io.PrintWriter) = {
+
+    // for(i <- 0 until gamma.size){
+    //   pw.write(gamma(i).toString)
+    //   if(i != gamma.size-1){
+    //     pw.write(",")
+    //   }
+    // }
+    pw.write(gamma.toArray.mkString(","))
+    pw.write("\n")
+
+    // for(i <- 0 until beta.size){
+    //   pw.write(beta(i).toString)
+    //   if(i != beta.size-1){
+    //     pw.write(",")
+    //   }
+    // }
+    pw.write(beta.toArray.mkString(","))
+    pw.write("\n")
+
+    pw.write(allvaria.toArray.mkString(","))
+    // pw.write(",")
+    pw.write("\n")
+
+    pw.write(allmu.toArray.mkString(","))
+    pw.write("\n")
+
+    opt.save_(pw)
+
+    pw
   }
 
   def load(fn: String) {
     val str = io.Source.fromFile(fn).getLines.toArray.map(_.split(",").map(_.toDouble))
+    println(s"BN-load:")
+    println(s"\tgamma: ${gamma.size}, loaded: ${str(0).size}")
+    println(s"\tbeta: ${beta.size}, loaded: ${str(1).size}")
+    println(s"\tallvaria: ${allvaria.size}, loaded: ${str(2).size}")
+    println(s"\tallmu: ${allmu.size}, loaded: ${str(3).size}")
     for (i <- 0 until gamma.size) {
       gamma(i) = str(0)(i)
     }
     for (i <- 0 until beta.size) {
       beta(i) = str(1)(i)
     }
+    for (i <- 0 until allvaria.size) {
+      allvaria(i) = str(2)(i)
+    }
+    for (i <- 0 until allmu.size) {
+      allmu(i) = str(3)(i)
+    }
+
+    opt.load(fn)
   }
 
-  def load(data: List[String]): List[String] = { data }
+  def load(data: List[String]): List[String] = {
+    val str = data.take(4).map(_.split(",").map(_.toDouble))
+
+    println(s"BN-load:")
+    println(s"\tgamma: ${gamma.size}, loaded: ${str(0).size}")
+    println(s"\tbeta: ${beta.size}, loaded: ${str(1).size}")
+    println(s"\tallvaria: ${allvaria.size}, loaded: ${str(2).size}")
+    println(s"\tallmu: ${allmu.size}, loaded: ${str(3).size}")
+
+    for (i <- 0 until gamma.size) {
+      gamma(i) = str(0)(i)
+    }
+    for (i <- 0 until beta.size) {
+      beta(i) = str(1)(i)
+    }
+    for (i <- 0 until allvaria.size) {
+      allvaria(i) = str(2)(i)
+    }
+    for (i <- 0 until allmu.size) {
+      allmu(i) = str(3)(i)
+    }
+
+    opt.load(data.drop(4))
+  }
+
 }

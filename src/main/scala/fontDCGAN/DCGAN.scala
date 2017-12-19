@@ -3,20 +3,16 @@ package fontDCGAN
 import pll._
 import breeze.linalg._
 
-object atFontDCGAN {
-  // parameter
-  var TRAIN_DATA           = "data/fonts/font-all-d.txt"
-  var DATA_SIZE            = 10000
-  var TEST_DATA            = "/home/share/number/test-d.txt"
-  var TEST_DATA_SIZE       = 10000
-  var BATCH_SIZE           = 32
-  var NUM_EPOCH            = 20
-  var GENERATED_IMAGE_PATH = "src/main/scala/fontDCGAN/img"
-  var LOAD_PARAM_G         = ""
-  var LOAD_PARAM_D         = ""
+case class DCGAN(G: Generator, D: Discriminator) {
+  val model = new batchNet()
+  model.layers = G.model.layers ++ D.model.layers
+}
 
-  val D = Discriminator() // Loss-func is 'cross entropy'
-  val G = Generator()     // Loss-func is 'cross entropy'
+object atFont {
+
+  val D     = Discriminator() // Loss-func is 'cross entropy'
+  val G     = Generator() // Loss-func is 'cross entropy'
+  val dcgan = DCGAN(G, D)
 
   def train(BATCH_SIZE: Int, NUM_EPOCH: Int)(TRAIN_DATA: String, DATA_SIZE: Int)(
       TEST_DATA: String,
@@ -37,7 +33,6 @@ object atFontDCGAN {
     println("--- load complete ---")
 
     println("--- train start ---")
-    var (g_loss_placeholder, d_loss_placeholder) = (0d, 0d)
 
     val num_batches = (train_d.size / BATCH_SIZE).toInt
     println(s"Number of Batches: $num_batches")
@@ -61,42 +56,32 @@ object atFontDCGAN {
         val X: Array[DenseVector[Double]] = image_batch ++ generated_image
         val y: Array[DenseVector[Double]] = Array.fill(BATCH_SIZE) { DenseVector(1d) } ++ Array
           .fill(BATCH_SIZE) { DenseVector(0d) }
-        //val (d_loss, d_ys_list) = D.model.batch_train(X, y, /* 2 * */BATCH_SIZE, err.calc_cross_entropy_loss, grad.calc_cross_entropy_grad)
-
-        val predicts = D.model.predict(X)
-        val d_loss   = err.calc_cross_entropy_loss(predicts, y)
-        val d_grads  = grad.calc_cross_entropy_grad(predicts, y)
-        D.model.update(d_grads)
+        val (d_loss, d_ys_list) = D.model.batch_train(
+          X,
+          y, /* 2 * */ BATCH_SIZE,
+          err.calc_cross_entropy_loss,
+          grad.calc_cross_entropy_grad)
+        // val (d_loss, d_ys_list) = D.model.batch_train(X, y, 2 * BATCH_SIZE, err.calc_L2, grad.calc_L2_grad)
 
         // Update Generator
         val noise2 = Array.fill(BATCH_SIZE) { DenseVector.fill(100) { util.Random.nextDouble } }
-        //val (g_loss, g_ys_list) = dcgan.model.batch_train(noise2, Array.fill(BATCH_SIZE){ DenseVector(1d) }, BATCH_SIZE, err.calc_cross_entropy_loss, grad.calc_cross_entropy_grad)
-
-        val gen      = G.model.predict(noise2)
-        val dis      = D.model.predict(gen)
-        val g_loss   = err.calc_cross_entropy_loss(dis, Array.fill(BATCH_SIZE) { DenseVector(1d) })
-        val gd_grads = grad.calc_cross_entropy_grad(dis, Array.fill(BATCH_SIZE) { DenseVector(1d) })
-        val D_back   = D.model.backprop(gd_grads)
-        D.model.reset()
-        G.model.update(D_back)
+        val (g_loss, g_ys_list) = dcgan.model.batch_train(noise2, Array.fill(BATCH_SIZE) {
+          DenseVector(1d)
+        }, BATCH_SIZE, err.calc_cross_entropy_loss, grad.calc_cross_entropy_grad)
+        // val (g_loss, g_ys_list) = dcgan.model.batch_train(noise2, Array.fill(BATCH_SIZE){ DenseVector.ones[Double](1) }, BATCH_SIZE, err.calc_L2, grad.calc_L2_grad)
 
         if (epoch == 0 && index == 0) {
           println("\nepoch,index,g_loss,d_loss")
         }
         println(s"$epoch, $index, $g_loss, $d_loss")
-        g_loss_placeholder = g_loss
-        d_loss_placeholder = d_loss
+
       }
 
       // save each network's parameters
-      if (epoch % 10 == 0) {
-        G.model.save_one_file(s"${GENERATED_IMAGE_PATH}/Gen_e${epoch}")
-        D.model.save_one_file(s"${GENERATED_IMAGE_PATH}/Dis_e${epoch}")
-      }
+      G.model.save_one_file(s"${GENERATED_IMAGE_PATH}/Gen_e${epoch}")
+      D.model.save_one_file(s"${GENERATED_IMAGE_PATH}/Dis_e${epoch}")
 
     }
-
-    (g_loss_placeholder, d_loss_placeholder)
 
   }
 
@@ -113,11 +98,18 @@ object atFontDCGAN {
     pw.close()
   }
 
-  def data_load(): Array[DenseVector[Double]] = {
-    utils.read(TRAIN_DATA, DATA_SIZE)
-  }
+  def main(args: Array[String]) {
 
-  def args_process(args: Array[String]) {
+    var TRAIN_DATA           = "data/fonts/font-all-d.txt"
+    var DATA_SIZE            = 10000
+    var TEST_DATA            = "/home/share/number/test-d.txt"
+    var TEST_DATA_SIZE       = 10000
+    var BATCH_SIZE           = 32
+    var NUM_EPOCH            = 20
+    var GENERATED_IMAGE_PATH = "src/main/scala/fontDCGAN/img"
+    var LOAD_PARAM_G         = ""
+    var LOAD_PARAM_D         = ""
+
     // process of arguments
     if (args.nonEmpty) {
       val opt_value = args.grouped(2)
@@ -136,11 +128,6 @@ object atFontDCGAN {
         }
       }
     }
-  }
-
-  def main(args: Array[String]) {
-
-    args_process(args)
 
     train(BATCH_SIZE, NUM_EPOCH)(TRAIN_DATA, DATA_SIZE)(TEST_DATA, TEST_DATA_SIZE)(
       GENERATED_IMAGE_PATH)(LOAD_PARAM_G, LOAD_PARAM_D)

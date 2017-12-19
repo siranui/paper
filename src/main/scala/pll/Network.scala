@@ -20,6 +20,17 @@ class Network() {
     predict_value
   }
 
+  def forward_at_test(x: DenseVector[Double]): DenseVector[Double] = {
+    var forward_value = x
+    for (layer <- layers) {
+      forward_value = layer match {
+        case dropout: Dropout => dropout.forward_at_test(forward_value)
+        case _: Layer         => layer.forward(forward_value)
+      }
+    }
+    forward_value
+  }
+
   def train(
       inputs: Seq[DenseVector[Double]],
       tags: Seq[DenseVector[Double]],
@@ -46,7 +57,8 @@ class Network() {
     var E                             = 0d
     var ys: List[DenseVector[Double]] = Nil
     for ((x, t) <- (inputs zip tags)) {
-      val y = predict(x)
+      // val y = predict(x)
+      val y = forward_at_test(x)
       reset()
       E += calcError(y, t)
       ys = y :: ys
@@ -81,8 +93,17 @@ class Network() {
     layers.foreach(_.save(fn))
   }
 
+  def save_one_file(fn: String) {
+    val fos = new java.io.FileOutputStream(fn, false)
+    val osw = new java.io.OutputStreamWriter(fos, "UTF-8")
+    val pw  = new java.io.PrintWriter(osw)
+    layers.foreach(_.save_(pw))
+    pw.close()
+  }
+
   def load(fn: String) {
     var tmp = io.Source.fromFile(fn).getLines.toList
+    println(s"$fn:L${tmp.size}")
     for (l <- layers) {
       tmp = l.load(tmp)
     }
@@ -90,7 +111,7 @@ class Network() {
 }
 
 class NetworkWithDropout() extends Network {
-  def forward_at_test(x: DenseVector[Double]): DenseVector[Double] = {
+  override def forward_at_test(x: DenseVector[Double]): DenseVector[Double] = {
     var forward_value = x
     for (layer <- layers) {
       forward_value = layer match {
@@ -149,6 +170,7 @@ class batchNet() extends Network {
       tmp = rLayer.backwards(tmp)
     }
     // tmp.reverse
+    // TODO: 順番をきちんと把握する
     tmp.reverse
   }
 

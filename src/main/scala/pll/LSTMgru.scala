@@ -3,10 +3,10 @@ import breeze.linalg._
 
 class GRU(val xn: Int, val hn: Int, val dist: String, var n: Double, val u: String, val a: Double)
     extends Layer {
-  //xn = Numbers of vector's elements.
-  //hn = Numbers of middle-layer's nodes.
+  //xn = ベクトルの要素数
+  //hn = 中間層のノード数
 
-  // store: pre-inputs.
+  //前の入力をとっておく
   var xs  = List[DenseVector[Double]]()
   var wx  = xavier(hn, xn)
   var wh  = xavier(hn, hn)
@@ -14,7 +14,7 @@ class GRU(val xn: Int, val hn: Int, val dist: String, var n: Double, val u: Stri
   var wrh = xavier(hn, hn)
   var wzx = xavier(hn, xn)
   var wzh = xavier(hn, hn)
-  // update amount of weight
+  //重みの更新量
   var wxsum  = DenseMatrix.zeros[Double](wx.rows, wx.cols)
   var whsum  = DenseMatrix.zeros[Double](wh.rows, wh.cols)
   var wzxsum = DenseMatrix.zeros[Double](wzx.rows, wzx.cols)
@@ -138,7 +138,7 @@ class GRU(val xn: Int, val hn: Int, val dist: String, var n: Double, val u: Stri
     z = List[DenseVector[Double]]()
     h1 = List[DenseVector[Double]]()
   }
-  // init value of xavier
+  //ザビエの初期値
   def xavier(r: Int, c: Int) = {
     val x = DenseMatrix.zeros[Double](r, c)
     for (i <- 0 until r) {

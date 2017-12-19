@@ -132,17 +132,17 @@ class LSTMorg(val xn: Int,
 
     val dz = (Wf.t * ds) + (Wi.t * dq) + (Wc.t * dp) + (Wo.t * dm)
 
-    // Update Delta to the previous time
+    // 前の時刻へのデルタの更新
     dN = dz(0 until hn)
     dC = dk *:* Ft.head
 
-    // Update "Update amount of weight"
+    // 重みの更新量の更新
     dWf += ds * z.head.t
     dWi += dq * z.head.t
     dWc += dp * z.head.t
     dWo += dm * z.head.t
 
-    // Update "Update amount of bias"
+    // バイアスの更新量の更新
     dbf += ds
     dbi += dq
     dbc += dp

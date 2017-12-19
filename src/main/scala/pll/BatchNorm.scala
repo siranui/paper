@@ -3,16 +3,16 @@ package pll
 import breeze.linalg._
 
 class BatchNorm(update_method: String = "SGD", lr: Double = 0.01) extends Layer {
-  // Ã¥Â­Â¦Ã§Â¿ÂÃ¥Â¯Â¾Ã¨Â±Â¡
+  // 学習対象
   var gamma: DenseVector[Double] = null //DenseVector.ones[Double](ch*dim)
   var beta: DenseVector[Double]  = null //DenseVector.zeros[Double](ch*dim)
 
-  // backward()Ã£ÂÂ§Ã¤Â½Â¿Ã£ÂÂÃ£ÂÂÃ£ÂÂÃ£ÂÂforward()Ã£ÂÂ®Ã¥Â¤ÂÃ£ÂÂ§Ã¥Â®ÂÃ§Â¾Â©Ã£ÂÂÃ£ÂÂ¦Ã£ÂÂÃ£ÂÂ
+  // backward()で使うため、forward()の外で定義している
   var xc  = Array[DenseVector[Double]]()
   var std = DenseVector[Double]()
   var xn  = Array[DenseVector[Double]]()
 
-  // Ã¦ÂÂ´Ã¦ÂÂ°Ã©ÂÂÃ£ÂÂÃ¤Â¿ÂÃ¦ÂÂÃ£ÂÂÃ£ÂÂÃ¥Â¤ÂÃ¦ÂÂ°
+  // 更新量を保持する変数
   var dgamma: DenseVector[Double] = null //DenseVector.zeros[Double](ch*dim)
   var dbeta: DenseVector[Double]  = null //DenseVector.zeros[Double](ch*dim)
 

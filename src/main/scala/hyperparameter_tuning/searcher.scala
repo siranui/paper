@@ -14,9 +14,10 @@ case class Condition(cond: Any*)
 case class InterimResult(interimResult: Double)
 case class Result(cond: Condition, result: Double)
 
-
 object Controler {
-  def props(nwb: NB, train_set: DATASET, test_set: DATASET, conditions: Conditions)(implicit nrOfThread: Int = 4) = Props(new Controler(nwb, train_set, test_set, conditions)(nrOfThread))
+  def props(nwb: NB, train_set: DATASET, test_set: DATASET, conditions: Conditions)(
+      implicit nrOfThread: Int = 4) =
+    Props(new Controler(nwb, train_set, test_set, conditions)(nrOfThread))
 }
 
 /**
@@ -26,20 +27,22 @@ object Controler {
   * @param train_set DATASET of train. Array(Data, Tag)
   * @param test_set DATASET of test. Array(Data, Tag)
   * @param Conditions Conditions that we want to try.
-  * 
+  *
   * @param nrOfThread number of thread.
   */
-class Controler(nwb: NB, train_set: DATASET, test_set: DATASET, conditions: Conditions)(implicit nrOfThread: Int = 4)
-    extends Actor with ActorLogging {
+class Controler(nwb: NB, train_set: DATASET, test_set: DATASET, conditions: Conditions)(
+    implicit nrOfThread: Int = 4)
+    extends Actor
+    with ActorLogging {
   import context._
 
-  def createTrainer(name:String) = {
+  def createTrainer(name: String) = {
     context.actorOf(Trainer.props(nwb, train_set, test_set), name)
     // context.actorOf(Props(new Trainer(nwb, train_set, test_set)), name)
   }
 
   // Generate Chile Actor.
-  val trainers = (0 until nrOfThread).map(i => createTrainer("trainer-"+i))
+  val trainers = (0 until nrOfThread).map(i => createTrainer("trainer-" + i))
   trainers.map(trainer => context.watch(trainer))
 
   var terminated = 0
@@ -56,10 +59,10 @@ class Controler(nwb: NB, train_set: DATASET, test_set: DATASET, conditions: Cond
         update_method <- conditions.cond(2)
         lr            <- conditions.cond(3)
       } {
-        trainers(i%nrOfThread) ! Condition(distr, SD, update_method, lr) 
+        trainers(i % nrOfThread) ! Condition(distr, SD, update_method, lr)
 
-        i+=1
-        if(i>10000) i = 0
+        i += 1
+        if (i > 10000) i = 0
       }
     case Result(c, res) =>
       // println(res)
@@ -70,9 +73,14 @@ class Controler(nwb: NB, train_set: DATASET, test_set: DATASET, conditions: Cond
 
       log.info(s"nrOfTerminated: $terminated")
 
-      if(terminated == nrOfThread){ // trainerが全て終了した時の処理
+      if (terminated == nrOfThread) { // trainerが全て終了した時の処理
         println("\n\n\n")
-        resMap.toArray.sortBy(_._2).reverse.take(10).toList.foreach(p => println(s"conditon:${p._1.toString}\ttest acc:${p._2}"))
+        resMap.toArray
+          .sortBy(_._2)
+          .reverse
+          .take(10)
+          .toList
+          .foreach(p => println(s"conditon:${p._1.toString}\ttest acc:${p._2}"))
         println("\n\n\n")
         log.info(s"trainer: Terminated.")
         println("\n\n\n")
@@ -82,9 +90,9 @@ class Controler(nwb: NB, train_set: DATASET, test_set: DATASET, conditions: Cond
   }
 }
 
-
 object Trainer {
-  def props(nwb: NB, train_set: DATASET, test_set: DATASET) = Props(new Trainer(nwb, train_set, test_set))
+  def props(nwb: NB, train_set: DATASET, test_set: DATASET) =
+    Props(new Trainer(nwb, train_set, test_set))
 }
 
 /**
@@ -127,7 +135,6 @@ object Main {
 
     mock.args_process(args)
 
-
     // 探索するハイパーパラメータを列挙
     val distrs         = Seq("Xavier", "He", "Gaussian", "Uniform")
     val SDs            = linspace(0.01, 10, 4).toArray.toSeq
@@ -140,7 +147,6 @@ object Main {
     val train_set: DATASET = train_data zip train_tag
     val test_set: DATASET  = test_data zip test_tag
 
-
     implicit val timeout = Timeout(1000.milliseconds)
 
     // Generate Actor System
@@ -152,9 +158,9 @@ object Main {
           train_set,
           test_set,
           Conditions(distrs, SDs, update_methods, lrs))(
-              nrOfThread = 4
-            )
-          ))
+          nrOfThread = 4
+        )
+      ))
 
     controler ! "grid"
 

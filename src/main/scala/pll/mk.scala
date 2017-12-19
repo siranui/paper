@@ -21,7 +21,7 @@ object mk {
       }
     }
 
-    // è»¸ã©ãã«ãã¿ã¤ãã«ã®è¨­å®
+    // 軸ラベル、タイトルの設定
     p.xlabel = xlabel; p.ylabel = ylabel; p.title = title
     f.saveas(saveFileName)
   }

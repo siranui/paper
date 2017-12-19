@@ -32,6 +32,10 @@ trait Layer {
 
   def save(filename: String): Unit
 
+  def save_(pw: java.io.PrintWriter): java.io.PrintWriter = {
+    pw
+  }
+
   def load(filename: String): Unit
 
   def load(data: List[String]): List[String]

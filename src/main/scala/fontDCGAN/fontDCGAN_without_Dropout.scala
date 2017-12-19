@@ -3,7 +3,7 @@ package fontDCGAN
 import pll._
 import breeze.linalg._
 
-object atFontDCGAN {
+object atFontDCGAN_without_Dropout {
   // parameter
   var TRAIN_DATA           = "data/fonts/font-all-d.txt"
   var DATA_SIZE            = 10000
@@ -15,8 +15,8 @@ object atFontDCGAN {
   var LOAD_PARAM_G         = ""
   var LOAD_PARAM_D         = ""
 
-  val D = Discriminator() // Loss-func is 'cross entropy'
-  val G = Generator()     // Loss-func is 'cross entropy'
+  val D = Discriminator_without_Dropout() // Loss-func is 'cross entropy'
+  val G = Generator()                     // Loss-func is 'cross entropy'
 
   def train(BATCH_SIZE: Int, NUM_EPOCH: Int)(TRAIN_DATA: String, DATA_SIZE: Int)(
       TEST_DATA: String,
