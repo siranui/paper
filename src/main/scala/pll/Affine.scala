@@ -1,7 +1,8 @@
 package pll
 import breeze.linalg._
 
-class Affine(xn: Int, yn: Int, bumpu: String, s: Double, koshin: String, a: Double) extends Layer {
+case class Affine(xn: Int, yn: Int, bumpu: String, s: Double, koshin: String, a: Double)
+    extends Layer {
   var opt = Opt.create(koshin, a)
   var w   = DenseMatrix.zeros[Double](yn, xn)
   var b   = DenseVector.zeros[Double](yn)
@@ -116,9 +117,9 @@ class Affine(xn: Int, yn: Int, bumpu: String, s: Double, koshin: String, a: Doub
   def load(data: List[String]): List[String] = {
     val ws = data(0).split(",").map(_.toDouble)
     val bs = data(1).split(",").map(_.toDouble)
-    println(s"Affine-load:")
-    println(s"\tW: ${w.size}, loaded: ${ws.size}")
-    println(s"\tb: ${b.size}, loaded: ${bs.size}")
+    pll.log.debug(s"Affine-load:")
+    pll.log.debug(s"\tW: ${w.size}, loaded: ${ws.size}")
+    pll.log.debug(s"\tb: ${b.size}, loaded: ${bs.size}")
     for (i <- 0 until w.rows) {
       for (j <- 0 until w.cols) {
         w(i, j) = ws(w.cols * i + j)

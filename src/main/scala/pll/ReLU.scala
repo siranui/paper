@@ -1,7 +1,7 @@
 package pll
 import breeze.linalg._
 
-class ReLU() extends Layer {
+case class ReLU() extends Layer {
 
   var x1: List[DenseVector[Double]] = Nil
   def forward(x: DenseVector[Double]) = {

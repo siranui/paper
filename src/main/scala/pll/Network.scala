@@ -103,7 +103,7 @@ class Network() {
 
   def load(fn: String) {
     var tmp = io.Source.fromFile(fn).getLines.toList
-    println(s"$fn:L${tmp.size}")
+    pll.log.debug(s"$fn:L${tmp.size}")
     for (l <- layers) {
       tmp = l.load(tmp)
     }

@@ -22,6 +22,7 @@ object param {
   var lr            = 2e-4
 
   var LOAD_PARAM_G = ""
+  var LOAD_Z       = ""
 
   def setParamFromArgs(args: Array[String]): Unit = {
     var i = 0
@@ -68,6 +69,9 @@ object param {
           i += 2
         case "--load-param-g" =>
           LOAD_PARAM_G = args(i + 1)
+          i += 2
+        case "--load-z" =>
+          LOAD_Z = args(i + 1)
           i += 2
         case "--distr" =>
           distr = args(i + 1)

@@ -8,10 +8,10 @@ object CastImplicits {
   implicit def Double2Float(n: DenseMatrix[Double]) = convert(n, Float)
 }
 
-object Types {
-  import breeze.linalg._
-
-  type T  = Float
-  type DV = DenseVector[T]
-  type DM = DenseMatrix[T]
-}
+// object Types {
+//   import breeze.linalg._
+//
+//   type T = Float
+//   type DV = DenseVector[T]
+//   type DM = DenseMatrix[T]
+// }

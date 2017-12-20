@@ -68,7 +68,7 @@ class SGD(var lr: Double = 0.01) extends Opt {
 
   def update(ps: Array[DenseMatrix[Double]],
              ds: Array[DenseMatrix[Double]]): Array[DenseMatrix[Double]] = {
-    val us = new Array[DenseMatrix[Double]](ps.size)
+    var us = new Array[DenseMatrix[Double]](ps.size)
     for (i <- 0 until ps.size) {
       us(i) = lr * ds(i)
     }
@@ -77,7 +77,7 @@ class SGD(var lr: Double = 0.01) extends Opt {
 
   def update(ps: Array[DenseVector[Double]],
              ds: Array[DenseVector[Double]]): Array[DenseVector[Double]] = {
-    val us = new Array[DenseVector[Double]](ps.size)
+    var us = new Array[DenseVector[Double]](ps.size)
     for (i <- 0 until ps.size) {
       us(i) = lr * ds(i)
     }
@@ -105,7 +105,7 @@ class Momentum(var lr: Double = 0.01, var momentum: Double = 0.9) extends Opt {
 
   def update(ps: Array[DenseMatrix[Double]],
              ds: Array[DenseMatrix[Double]]): Array[DenseMatrix[Double]] = {
-    val us = new Array[DenseMatrix[Double]](ps.size)
+    var us = new Array[DenseMatrix[Double]](ps.size)
     for (i <- 0 until ps.size) {
       vms(i) = (momentum * vms(i)) -:- (lr * ds(i))
       us(i) = -1d * vms(i)
@@ -115,7 +115,7 @@ class Momentum(var lr: Double = 0.01, var momentum: Double = 0.9) extends Opt {
 
   def update(ps: Array[DenseVector[Double]],
              ds: Array[DenseVector[Double]]): Array[DenseVector[Double]] = {
-    val us = new Array[DenseVector[Double]](ps.size)
+    var us = new Array[DenseVector[Double]](ps.size)
     for (i <- 0 until ps.size) {
       vvs(i) = (momentum * vvs(i)) -:- (lr * ds(i))
       us(i) = -1d * vvs(i)
@@ -144,7 +144,7 @@ class AdaGrad(var lr: Double = 0.01, var epsilon: Double = 1e-8) extends Opt {
 
   def update(ps: Array[DenseMatrix[Double]],
              ds: Array[DenseMatrix[Double]]): Array[DenseMatrix[Double]] = {
-    val us = new Array[DenseMatrix[Double]](ps.size)
+    var us = new Array[DenseMatrix[Double]](ps.size)
     for (i <- 0 until ps.size) {
       hms(i) = hms(i) + ds(i) *:* ds(i)
       us(i) = lr * ds(i) /:/ (hms(i).map(Math.sqrt) + epsilon)
@@ -154,7 +154,7 @@ class AdaGrad(var lr: Double = 0.01, var epsilon: Double = 1e-8) extends Opt {
 
   def update(ps: Array[DenseVector[Double]],
              ds: Array[DenseVector[Double]]): Array[DenseVector[Double]] = {
-    val us = new Array[DenseVector[Double]](ps.size)
+    var us = new Array[DenseVector[Double]](ps.size)
     for (i <- 0 until ps.size) {
       hvs(i) = hvs(i) + ds(i) *:* ds(i)
       us(i) = lr * ds(i) /:/ (hvs(i).map(Math.sqrt) + epsilon)
@@ -199,7 +199,7 @@ class Adam(val lr: Double = 0.001,
              ds: Array[DenseMatrix[Double]]): Array[DenseMatrix[Double]] = {
     tm += 1
     val t  = tm
-    val us = new Array[DenseMatrix[Double]](ps.size)
+    var us = new Array[DenseMatrix[Double]](ps.size)
     for (i <- 0 until ps.size) {
       vms(i) = beta1 * vms(i) + (1d - beta1) * ds(i)
       hms(i) = beta2 * hms(i) + (1d - beta2) * (ds(i) *:* ds(i))
@@ -214,7 +214,7 @@ class Adam(val lr: Double = 0.001,
              ds: Array[DenseVector[Double]]): Array[DenseVector[Double]] = {
     tv += 1
     val t  = tv
-    val us = new Array[DenseVector[Double]](ps.size)
+    var us = new Array[DenseVector[Double]](ps.size)
     for (i <- 0 until ps.size) {
       vvs(i) = beta1 * vvs(i) + (1d - beta1) * ds(i)
       hvs(i) = beta2 * hvs(i) + (1d - beta2) * (ds(i) *:* ds(i))
@@ -345,10 +345,10 @@ class Adam(val lr: Double = 0.001,
 
   override def load(data: List[String]): List[String] = {
     val str = data.map(_.split(",").map(_.toDouble))
-    println(s"adam-load:")
+    pll.log.debug(s"adam-load:")
     var num = 0
     for (k <- 0 until hms.size) {
-      println(s"\thms($k):${hms(k).size}, loaded: ${str(num).size}")
+      pll.log.debug(s"\thms($k):${hms(k).size}, loaded: ${str(num).size}")
       for (i <- 0 until hms(k).rows) {
         for (j <- 0 until hms(k).cols) {
           hms(k)(i, j) = str(num)(hms(k).cols * i + j).toDouble
@@ -357,7 +357,7 @@ class Adam(val lr: Double = 0.001,
       num += 1
     }
     for (k <- 0 until vms.size) {
-      println(s"\tvms($k):${vms(k).size}, loaded: ${str(num).size}")
+      pll.log.debug(s"\tvms($k):${vms(k).size}, loaded: ${str(num).size}")
       for (i <- 0 until vms(k).rows) {
         for (j <- 0 until vms(k).cols) {
           vms(k)(i, j) = str(num)(vms(k).cols * i + j)
@@ -366,24 +366,24 @@ class Adam(val lr: Double = 0.001,
       num += 1
     }
     for (k <- 0 until hvs.size) {
-      println(s"\thvs($k):${hvs(k).size}, loaded: ${str(num).size}")
+      pll.log.debug(s"\thvs($k):${hvs(k).size}, loaded: ${str(num).size}")
       for (i <- 0 until hvs(k).size) {
         hvs(k)(i) = str(num)(i)
       }
       num += 1
     }
     for (k <- 0 until vvs.size) {
-      println(s"\tvvs($k):${vvs(k).size}, loaded: ${str(num).size}")
+      pll.log.debug(s"\tvvs($k):${vvs(k).size}, loaded: ${str(num).size}")
       for (i <- 0 until vvs(k).size) {
         vvs(k)(i) = str(num)(i)
       }
       num += 1
     }
-    println(s"\ttm:${tm}, loaded: ${str(num).size}")
+    pll.log.debug(s"\ttm:${1}, loaded: ${str(num).size}")
     tm = str(num)(0).toInt
     num += 1
 
-    println(s"\ttv:${tv}, loaded: ${str(num).size}")
+    pll.log.debug(s"\ttv:${1}, loaded: ${str(num).size}")
     tv = str(num)(0).toInt
     data.drop(num + 1)
   }
@@ -410,7 +410,7 @@ class RMSProp(val lr: Double = 0.001, val beta: Double = 0.9, val epsilon: Doubl
 
   def update(ps: Array[DenseMatrix[Double]],
              ds: Array[DenseMatrix[Double]]): Array[DenseMatrix[Double]] = {
-    val us = new Array[DenseMatrix[Double]](ps.size)
+    var us = new Array[DenseMatrix[Double]](ps.size)
     for (i <- 0 until ps.size) {
       hms(i) = beta * hms(i) + (1d - beta) * (ds(i) *:* ds(i))
       us(i) = lr * ds(i) /:/ (hms(i).map(Math.sqrt) + epsilon)
@@ -420,7 +420,7 @@ class RMSProp(val lr: Double = 0.001, val beta: Double = 0.9, val epsilon: Doubl
 
   def update(ps: Array[DenseVector[Double]],
              ds: Array[DenseVector[Double]]): Array[DenseVector[Double]] = {
-    val us = new Array[DenseVector[Double]](ps.size)
+    var us = new Array[DenseVector[Double]](ps.size)
     for (i <- 0 until ps.size) {
       hvs(i) = beta * hvs(i) + (1d - beta) * (ds(i) *:* ds(i))
       us(i) = lr * ds(i) /:/ (hvs(i).map(Math.sqrt) + epsilon)

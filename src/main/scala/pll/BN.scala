@@ -1,7 +1,7 @@
 package pll
 import breeze.linalg._
 
-class BNL(var xn: Int, var bn: Int) extends Layer {
+case class BNL(var xn: Int, var bn: Int) extends Layer {
   var beta  = DenseVector.zeros[Double](xn)
   var dbeta = DenseVector.zeros[Double](xn)
   var gamma = DenseVector.ones[Double](xn)
@@ -208,11 +208,11 @@ class BNL(var xn: Int, var bn: Int) extends Layer {
   def load(data: List[String]): List[String] = {
     val str = data.take(4).map(_.split(",").map(_.toDouble))
 
-    println(s"BN-load:")
-    println(s"\tgamma: ${gamma.size}, loaded: ${str(0).size}")
-    println(s"\tbeta: ${beta.size}, loaded: ${str(1).size}")
-    println(s"\tallvaria: ${allvaria.size}, loaded: ${str(2).size}")
-    println(s"\tallmu: ${allmu.size}, loaded: ${str(3).size}")
+    pll.log.debug(s"BN-load:")
+    pll.log.debug(s"\tgamma: ${gamma.size}, loaded: ${str(0).size}")
+    pll.log.debug(s"\tbeta: ${beta.size}, loaded: ${str(1).size}")
+    pll.log.debug(s"\tallvaria: ${allvaria.size}, loaded: ${str(2).size}")
+    pll.log.debug(s"\tallmu: ${allmu.size}, loaded: ${str(3).size}")
 
     for (i <- 0 until gamma.size) {
       gamma(i) = str(0)(i)

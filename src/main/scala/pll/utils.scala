@@ -98,13 +98,13 @@ object utils {
     * @param fn       filename. (relative path from root)
     * @param dataList data.
     */
-  def write(fn: String, dataList: List[DenseVector[Int]], tf: Boolean = false): Unit = {
+  def write[T](fn: String, dataList: Seq[DenseVector[T]], tf: Boolean = false): Unit = {
     val fos = new java.io.FileOutputStream(fn, tf) //true: 追記, false: 上書き
     val osw = new java.io.OutputStreamWriter(fos, "UTF-8")
     val pw  = new java.io.PrintWriter(osw)
 
-    for (data <- dataList) {
-      pw.write(data.toArray.mkString(","))
+    for (data <- dataList.toList) {
+      pw.write(data.activeValuesIterator.mkString(","))
       pw.write("\n")
     }
     pw.close()

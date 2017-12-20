@@ -7,21 +7,19 @@ object Im2Col {
   type DV = DenseVector[T]
   type DM = DenseMatrix[T]
 
-  def im2col(x: Array[DV], fil_h: Int, fil_w: Int, ch: Int = 1, stride: Int = 1): DM = {
+  def im2col(x: Array[DV], fil_h: Int, fil_w: Int, ch: Int = 1, stride: Int = 1) = {
     val im: Array[Array[DV]]     = x.map(b => utils.divideIntoN(b, ch))
-    val in_w: Int                = math.sqrt(im(0)(0).size).toInt
+    val in_w                     = math.sqrt(im(0)(0).size).toInt
     val images: Array[Array[DM]] = im.map(_.map(i => reshape(i, in_w, in_w).t))
 
-    val out_w: Int = utils.out_width(in_w, fil_w, stride)
+    val out_w = utils.out_width(in_w, fil_w, stride)
 
-    val col: DM =
+    val col =
       (for (image <- images) yield {
         (for (image_ch <- image) yield {
           (for (i <- 0 until out_w; j <- 0 until out_w) yield {
             val m =
-              image_ch(
-                (i * stride) until (i * stride + fil_h),
-                (j * stride) until (j * stride + fil_w)).t
+              image_ch(i * stride until i * stride + fil_h, j * stride until j * stride + fil_w).t
             m.reshape(fil_h * fil_w, 1)
           }).reduce(DenseMatrix.horzcat(_, _))
         }).reduce(DenseMatrix.vertcat(_, _))
@@ -123,7 +121,6 @@ case class i2cConv(input_width: Int,
     val col   = im2col(Array(x), filter_width, filter_width, channel, stride)
     val col_W = fil2mat(F)
 
-    // TODO: col -> col.copy
     this.col_X = Some(col)
     this.col_W = Some(col_W)
 
@@ -235,6 +232,23 @@ case class i2cConv(input_width: Int,
     pw.write("\n")
 
     pw.close()
+
+    opt_filter.save(fn)
+    opt_bias.save(fn)
+  }
+
+  override def save_(pw: java.io.PrintWriter): java.io.PrintWriter = {
+    val flatF = F.flatMap(_.map(_.toArray)).flatten
+    pw.write(flatF.mkString(","))
+    pw.write("\n")
+
+    pw.write(B.toArray.mkString(","))
+    pw.write("\n")
+
+    opt_filter.save_(pw)
+    opt_bias.save_(pw)
+
+    pw
   }
 
   def load(fn: String) {
@@ -255,11 +269,18 @@ case class i2cConv(input_width: Int,
     } {
       B(fs) = str(1)(fs)
     }
+
+    opt_filter.load(fn)
+    opt_bias.load(fn)
   }
 
   override def load(data: List[String]): List[String] = {
     val flst = data(0).split(",").map(_.toDouble)
     val blst = data(1).split(",").map(_.toDouble)
+
+    pll.log.debug(s"i2cConv-load:")
+    pll.log.debug(s"\tF: ${F.map(_.map(_.toArray)).flatten.flatten.size}, loaded: ${flst.size}")
+    pll.log.debug(s"\tB: ${B.size}, loaded: ${blst.size}")
 
     // set 'F' parameter
     for {
@@ -277,7 +298,8 @@ case class i2cConv(input_width: Int,
       B(fs) = blst(fs)
     }
 
-    data.drop(2)
+    val dd = opt_filter.load(data.drop(2))
+    opt_bias.load(dd)
   }
 
   // helper
