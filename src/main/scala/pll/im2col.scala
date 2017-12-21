@@ -275,8 +275,8 @@ case class i2cConv(input_width: Int,
   }
 
   override def load(data: List[String]): List[String] = {
-    val flst = data(0).split(",").map(_.toDouble)
-    val blst = data(1).split(",").map(_.toDouble)
+    val flst: Array[Double] = data(0).split(",").map(_.toDouble)
+    val blst: Array[Double] = data(1).split(",").map(_.toDouble)
 
     pll.log.debug(s"i2cConv-load:")
     pll.log.debug(s"\tF: ${F.map(_.map(_.toArray)).flatten.flatten.size}, loaded: ${flst.size}")
@@ -288,7 +288,7 @@ case class i2cConv(input_width: Int,
       ch <- F(fs).indices
       v  <- 0 until F(fs)(ch).size
     } {
-      F(fs)(ch)(v) = flst(fs * F(fs).length + ch * F(fs)(ch).size + v)
+      F(fs)(ch)(v) = flst(fs * F(fs).length * F(fs)(ch).size + ch * F(fs)(ch).size + v)
     }
 
     // set 'B' parameter
