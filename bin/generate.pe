@@ -1,0 +1,63 @@
+#!/usr/bin/fontforge -script
+
+# quote: http://shiromoji.hatenablog.jp/entry/20120314/1331744357
+
+if ($argc != 3)
+  Print("usage: fontforge -script " + $0 + " [fontfilename] [version]")
+  Quit()
+endif
+
+_version      = $2
+_fontfilename = $1 + "_v" + _version + ".ttf"
+_importfiles  = "svg/u*.svg"
+
+New()
+
+# .notdef作成
+Select(0x0000)
+SetWidth(1000)
+SetGlyphName(".notdef")
+
+# エンコードにUnicodeを指定
+Reencode("unicode")
+
+# SVGをすべてインポート
+Import(_importfiles, 0)
+
+# 自動ヒントづけOFF
+SelectAll()
+DontAutoHint()
+
+# パスの統合
+RemoveOverlap()
+
+# 整数値に丸める
+RoundToInt()
+
+# 半角スペース作成
+Select(0u0020)
+SetWidth(500)
+
+# 全角スペース作成
+Select(0u3000)
+SetWidth(1000)
+
+# フォント情報設定
+SetFontNames("ZeroMin",\
+    "ZeroMin",\
+    "ZeroMin",\
+    "Regular",\
+    "© 2012 mashabow",\
+    _version)
+SetOS2Value("WinAscent", 880)
+SetOS2Value("WinDescent", 120)
+SetOS2Value("HHeadAscent", 880)
+SetOS2Value("HHeadDescent", -120)
+
+# 生成
+Generate(_fontfilename)
+Print("generated: "+ _fontfilename)
+
+Close()
+
+Quit()
