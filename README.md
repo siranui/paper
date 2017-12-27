@@ -2,12 +2,15 @@
 
 ## 必要条件
 * scala
+  + breeze (version 0.13)
+  + breeze-natives (version 0.13)
+  + breeze-viz (version 0.13)
 * sbt
-* ipython
+* python3
   + numpy
   + scikit-image
-* potrace
-* fontforge
+* [potrace](http://potrace.sourceforge.net/)
+* [fontforge](https://fontforge.github.io/en-US/)
 * make
 
 ## 出力データを画像に変換
@@ -31,7 +34,8 @@ u0041.pngのように、ファイル名をその文字のasciiコードで表し
 ```
 make -f bin/Makefile all
 ```
-または、Makefileを同じディレクトリへ配置した上で、
+または、Makefileを同じディレクトリへ配置した上で
 ```
 make all
 ```
+[asciiコード](https://ja.wikipedia.org/wiki/ASCII)
