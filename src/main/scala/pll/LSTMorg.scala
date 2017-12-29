@@ -230,7 +230,7 @@ class LSTMorg(val xn: Int,
 
   def load(filename: String): Unit = {}
 
-  def load(data: List[String]): List[String] = {
+  override def load(data: List[String]): List[String] = {
     data
   }
 }

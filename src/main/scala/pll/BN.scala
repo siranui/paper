@@ -205,7 +205,7 @@ case class BNL(var xn: Int, var bn: Int) extends Layer {
     opt.load(fn)
   }
 
-  def load(data: List[String]): List[String] = {
+  override def load(data: List[String]): List[String] = {
     val str = data.take(4).map(_.split(",").map(_.toDouble))
 
     pll.log.debug(s"BN-load:")

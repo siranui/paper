@@ -28,7 +28,7 @@ case class ResNet(L: Seq[Layer]) extends Layer {
 
   def load(filename: String): Unit = {}
 
-  def load(data: List[String]): List[String] = data
+  override def load(data: List[String]): List[String] = data
 
   def reset(): Unit = { L.map(_.reset()) }
 

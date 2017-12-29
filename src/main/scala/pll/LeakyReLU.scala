@@ -31,7 +31,7 @@ case class LeakyReLU(alpha: Double = 0.02) extends Layer {
 
   def load(filename: String) {}
 
-  def load(data: List[String]): List[String] = {
+  override def load(data: List[String]): List[String] = {
     data
   }
 

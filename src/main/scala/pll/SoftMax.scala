@@ -32,7 +32,7 @@ class SoftMax() extends Layer {
   def reset() {}
   def save(fn: String) {}
   def load(fn: String) {}
-  def load(data: List[String]) = {
+  override def load(data: List[String]) = {
     data
   }
   override def duplicate() = {

@@ -36,7 +36,7 @@ case class Pad(channel: Int, width: Int, ud: String = "down") extends Layer {
 
   def load(filename: String) {}
 
-  def load(data: List[String]): List[String] = {
+  override def load(data: List[String]): List[String] = {
     data
   }
 

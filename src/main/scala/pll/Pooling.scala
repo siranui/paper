@@ -53,5 +53,5 @@ case class Pooling(window_height: Int, window_width: Int)(ch: Int,
 
   def load(filename: String): Unit = {}
 
-  def load(data: List[String]): List[String] = { data }
+  override def load(data: List[String]): List[String] = { data }
 }

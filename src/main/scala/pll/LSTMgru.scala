@@ -160,7 +160,7 @@ class GRU(val xn: Int, val hn: Int, val dist: String, var n: Double, val u: Stri
 
   def save(filename: String) {}
   def load(filename: String) {}
-  def load(data: List[String]) = {
+  override def load(data: List[String]) = {
     data
   }
 }

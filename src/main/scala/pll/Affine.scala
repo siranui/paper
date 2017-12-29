@@ -114,7 +114,7 @@ case class Affine(xn: Int, yn: Int, bumpu: String, s: Double, koshin: String, a:
     opt.load(fn)
   }
 
-  def load(data: List[String]): List[String] = {
+  override def load(data: List[String]): List[String] = {
     val ws = data(0).split(",").map(_.toDouble)
     val bs = data(1).split(",").map(_.toDouble)
     pll.log.debug(s"Affine-load:")

@@ -203,7 +203,7 @@ class LSTMfi(val xn: Int,
 
   def save(filename: String) {}
   def load(filename: String) {}
-  def load(data: List[String]) = {
+  override def load(data: List[String]) = {
     data
   }
 }

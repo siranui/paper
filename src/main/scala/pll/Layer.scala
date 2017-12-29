@@ -22,6 +22,18 @@ trait Layer {
     buf.toArray
   }
 
+  // src = getLinesする前の値
+  def get_value(src:scala.io.BufferedSource) = {
+    var buf = ""
+    var c = src.next
+    while(c != '\n' && c != ',') {
+      buf += c
+      c = src.next
+    }
+    src.next
+    buf.toDouble
+  }
+
   def update(): Unit
 
   def reset(): Unit
@@ -33,12 +45,16 @@ trait Layer {
   def save(filename: String): Unit
 
   def save_(pw: java.io.PrintWriter): java.io.PrintWriter = {
+    println(s"WARNING[save(pw: java.io.PrintWriter) in ${this.getClass.getName}]: You should implement this function")
     pw
   }
 
   def load(filename: String): Unit
 
-  def load(data: List[String]): List[String]
+  def load(data: List[String]): List[String] = {
+    println(s"WARNING[load(data: List[String]) in ${this.getClass.getName}]: You should implement this function")
+    data
+  }
 
   val rand = new util.Random(0)
 

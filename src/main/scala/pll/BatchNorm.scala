@@ -94,7 +94,7 @@ class BatchNorm(update_method: String = "SGD", lr: Double = 0.01) extends Layer 
 
   def load(filename: String) {}
 
-  def load(data: List[String]): List[String] = {
+  override def load(data: List[String]): List[String] = {
     data
   }
 }

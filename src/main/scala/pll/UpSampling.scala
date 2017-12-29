@@ -23,7 +23,7 @@ case class UpSampling1D(sz: Int) extends Layer with addKeyWord {
 
   def save(filename: String): Unit           = {}
   def load(filename: String): Unit           = {}
-  def load(data: List[String]): List[String] = data
+  override def load(data: List[String]): List[String] = data
 
 }
 
@@ -76,6 +76,6 @@ case class UpSampling2D(sz: Int)(implicit input_shape: (Int, Int, Int) = (1, 0, 
 
   def save(filename: String): Unit           = {}
   def load(filename: String): Unit           = {}
-  def load(data: List[String]): List[String] = data
+  override def load(data: List[String]): List[String] = data
 
 }
