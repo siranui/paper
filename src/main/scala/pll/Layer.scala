@@ -23,15 +23,15 @@ trait Layer {
   }
 
   // src = getLinesする前の値
-  def get_value(src:scala.io.BufferedSource) = {
-    var buf = ""
+  def get_value(src:scala.io.BufferedSource): Double = {
+    val builder = new StringBuilder
     var c = src.next
     while(c != '\n' && c != ',') {
-      buf += c
+      builder.append(c)
       c = src.next
     }
-    src.next
-    buf.toDouble
+
+    if( builder.length == 0 ) get_value(src) else builder.result.toDouble
   }
 
   def update(): Unit
