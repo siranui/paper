@@ -35,7 +35,8 @@ case class Generator(distr: String = "He",
   // [1,32,32]
 
   if (load_path != "") {
-    model.load(load_path)
+    // model.load(load_path)
+    model.load_version_iterator(load_path)
   }
 
 }

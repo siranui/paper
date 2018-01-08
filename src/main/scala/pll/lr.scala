@@ -1,6 +1,6 @@
 package pll
 import breeze.linalg._
-trait Opt {
+trait Opt extends Load {
   def update(ps: Array[DenseMatrix[Double]],
              ds: Array[DenseMatrix[Double]]): Array[DenseMatrix[Double]];
   def update(ps: Array[DenseVector[Double]],
@@ -9,8 +9,8 @@ trait Opt {
   def register(ps: Array[DenseVector[Double]]);
   def save(fn: String);
   def save_(pw: java.io.PrintWriter): java.io.PrintWriter = pw;
-  def load(fn: String);
-  def load(data: List[String]): List[String] = data;
+  // def load(fn: String);
+  // def load(data: List[String]): List[String] = data;
 }
 object Opt {
   def create(name: String, lr: Double) = {
@@ -386,6 +386,36 @@ class Adam(val lr: Double = 0.001,
     pll.log.debug(s"\ttv:${1}, loaded: ${str(num).size}")
     tv = str(num)(0).toInt
     data.drop(num + 1)
+  }
+
+  override def load_version_iterator(data_iter: scala.io.BufferedSource): Unit = {
+    for (k <- 0 until hms.size) {
+      for (i <- 0 until hms(k).rows) {
+        for (j <- 0 until hms(k).cols) {
+          hms(k)(i, j) = get_value(data_iter)
+        }
+      }
+    }
+    for (k <- 0 until vms.size) {
+      for (i <- 0 until vms(k).rows) {
+        for (j <- 0 until vms(k).cols) {
+          vms(k)(i, j) = get_value(data_iter)
+        }
+      }
+    }
+    for (k <- 0 until hvs.size) {
+      for (i <- 0 until hvs(k).size) {
+        hvs(k)(i) = get_value(data_iter)
+      }
+    }
+    for (k <- 0 until vvs.size) {
+      for (i <- 0 until vvs(k).size) {
+        vvs(k)(i) = get_value(data_iter)
+      }
+    }
+    tm = get_value(data_iter).toInt
+
+    tv = get_value(data_iter).toInt
   }
 }
 

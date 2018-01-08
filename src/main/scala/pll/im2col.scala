@@ -302,6 +302,28 @@ case class i2cConv(input_width: Int,
     opt_bias.load(dd)
   }
 
+  override def load_version_iterator(data_iter: scala.io.BufferedSource): Unit = {
+
+    // set 'F' parameter
+    for {
+      fs <- F.indices
+      ch <- F(fs).indices
+      v  <- 0 until F(fs)(ch).size
+    } {
+      F(fs)(ch)(v) = get_value(data_iter)
+    }
+
+    // set 'B' parameter
+    for {
+      fs <- 0 until B.length
+    } {
+      B(fs) = get_value(data_iter)
+    }
+
+    opt_filter.load_version_iterator(data_iter)
+    opt_bias.load_version_iterator(data_iter)
+  }
+
   // helper
 
   def filter_init(M: Int, K: Int, H: Int): Array[ADVD] = {

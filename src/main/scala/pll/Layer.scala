@@ -2,7 +2,35 @@ package pll
 
 import breeze.linalg._
 
-trait Layer {
+trait Load {
+  def load(filename: String): Unit
+
+  def load(data: List[String]): List[String] = {
+    println(
+      s"WARNING[load(data: List[String]) in ${this.getClass.getName}]: You should implement this function")
+    data
+  }
+
+  def load_version_iterator(data_iter: scala.io.BufferedSource): Unit = {
+    println(
+      s"WARNING[load_version_iterator(data_iter: scala.io.BufferedSource) in ${this.getClass.getName}]: You should implement this function")
+  }
+
+  // src = getLinesする前の値
+  def get_value(src: scala.io.BufferedSource): Double = {
+    val builder = new StringBuilder
+    var c       = src.next
+    while (c != '\n' && c != ',') {
+      builder.append(c)
+      c = src.next
+    }
+
+    if (builder.length == 0) get_value(src) else builder.result.toDouble
+  }
+
+}
+
+trait Layer extends Load {
 
   def forward(x: DenseVector[Double]): DenseVector[Double]
 
@@ -22,18 +50,6 @@ trait Layer {
     buf.toArray
   }
 
-  // src = getLinesする前の値
-  def get_value(src:scala.io.BufferedSource): Double = {
-    val builder = new StringBuilder
-    var c = src.next
-    while(c != '\n' && c != ',') {
-      builder.append(c)
-      c = src.next
-    }
-
-    if( builder.length == 0 ) get_value(src) else builder.result.toDouble
-  }
-
   def update(): Unit
 
   def reset(): Unit
@@ -45,16 +61,33 @@ trait Layer {
   def save(filename: String): Unit
 
   def save_(pw: java.io.PrintWriter): java.io.PrintWriter = {
-    println(s"WARNING[save(pw: java.io.PrintWriter) in ${this.getClass.getName}]: You should implement this function")
+    println(
+      s"WARNING[save(pw: java.io.PrintWriter) in ${this.getClass.getName}]: You should implement this function")
     pw
   }
 
-  def load(filename: String): Unit
+  // // src = getLinesする前の値
+  // def get_value(src:scala.io.BufferedSource): Double = {
+  //   val builder = new StringBuilder
+  //   var c = src.next
+  //   while(c != '\n' && c != ',') {
+  //     builder.append(c)
+  //     c = src.next
+  //   }
 
-  def load(data: List[String]): List[String] = {
-    println(s"WARNING[load(data: List[String]) in ${this.getClass.getName}]: You should implement this function")
-    data
-  }
+  //   if( builder.length == 0 ) get_value(src) else builder.result.toDouble
+  // }
+
+  // def load(filename: String): Unit
+
+  // def load(data: List[String]): List[String] = {
+  //   println(s"WARNING[load(data: List[String]) in ${this.getClass.getName}]: You should implement this function")
+  //   data
+  // }
+
+  // def load_version_iterator(data_iter: scala.io.BufferedSource): Unit = {
+  //   println(s"WARNING[load_version_iterator(data_iter: scala.io.BufferedSource) in ${this.getClass.getName}]: You should implement this function")
+  // }
 
   val rand = new util.Random(0)
 

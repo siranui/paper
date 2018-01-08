@@ -40,6 +40,10 @@ case class Pad(channel: Int, width: Int, ud: String = "down") extends Layer {
     data
   }
 
+  override def load_version_iterator(data_iter: scala.io.BufferedSource): Unit = {
+    /* do nothing */
+  }
+
   /*
    *  param
    *  ------

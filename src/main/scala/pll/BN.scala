@@ -139,7 +139,6 @@ case class BNL(var xn: Int, var bn: Int) extends Layer {
     pw.write("\n")
 
     pw.write(allvaria.toArray.mkString(","))
-    //pw.write(",")
     pw.write("\n")
 
     pw.write(allmu.toArray.mkString(","))
@@ -152,26 +151,13 @@ case class BNL(var xn: Int, var bn: Int) extends Layer {
 
   override def save_(pw: java.io.PrintWriter) = {
 
-    // for(i <- 0 until gamma.size){
-    //   pw.write(gamma(i).toString)
-    //   if(i != gamma.size-1){
-    //     pw.write(",")
-    //   }
-    // }
     pw.write(gamma.toArray.mkString(","))
     pw.write("\n")
 
-    // for(i <- 0 until beta.size){
-    //   pw.write(beta(i).toString)
-    //   if(i != beta.size-1){
-    //     pw.write(",")
-    //   }
-    // }
     pw.write(beta.toArray.mkString(","))
     pw.write("\n")
 
     pw.write(allvaria.toArray.mkString(","))
-    // pw.write(",")
     pw.write("\n")
 
     pw.write(allmu.toArray.mkString(","))
@@ -230,4 +216,21 @@ case class BNL(var xn: Int, var bn: Int) extends Layer {
     opt.load(data.drop(4))
   }
 
+  override def load_version_iterator(data_iter: scala.io.BufferedSource): Unit = {
+
+    for (i <- 0 until gamma.size) {
+      gamma(i) = get_value(data_iter)
+    }
+    for (i <- 0 until beta.size) {
+      beta(i) = get_value(data_iter)
+    }
+    for (i <- 0 until allvaria.size) {
+      allvaria(i) = get_value(data_iter)
+    }
+    for (i <- 0 until allmu.size) {
+      allmu(i) = get_value(data_iter)
+    }
+
+    opt.load_version_iterator(data_iter)
+  }
 }

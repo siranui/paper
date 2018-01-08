@@ -132,6 +132,19 @@ case class Affine(xn: Int, yn: Int, bumpu: String, s: Double, koshin: String, a:
     opt.load(data.drop(2))
   }
 
+  override def load_version_iterator(data_iter: scala.io.BufferedSource): Unit = {
+    for (i <- 0 until w.rows) {
+      for (j <- 0 until w.cols) {
+        w(i, j) = get_value(data_iter)
+      }
+    }
+    for (i <- 0 until b.size) {
+      b(i) = get_value(data_iter)
+    }
+
+    opt.load_version_iterator(data_iter)
+  }
+
   def mycopy() = {
     val af = new Affine(xn, yn, bumpu, s, koshin, a)
     af.w = this.w.copy

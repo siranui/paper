@@ -32,6 +32,11 @@ case class ReLU() extends Layer {
   override def load(data: List[String]) = {
     data
   }
+
+  override def load_version_iterator(data_iter: scala.io.BufferedSource): Unit = {
+    /* do nothing */
+  }
+
   override def duplicate() = {
     val r = new ReLU()
     r.x1 = x1

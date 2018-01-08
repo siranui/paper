@@ -108,6 +108,16 @@ class Network() {
       tmp = l.load(tmp)
     }
   }
+
+  // iterator version
+  def load_version_iterator(fn: String) {
+    val iter = io.Source.fromFile(fn)
+    for (l <- layers) {
+      l.load_version_iterator(iter)
+    }
+
+    if (iter.hasNext) pll.log.warn(s"$fn has next.")
+  }
 }
 
 class NetworkWithDropout() extends Network {

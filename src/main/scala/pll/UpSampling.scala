@@ -21,9 +21,12 @@ case class UpSampling1D(sz: Int) extends Layer with addKeyWord {
   def reset(): Unit  = {}
   def update(): Unit = {}
 
-  def save(filename: String): Unit           = {}
-  def load(filename: String): Unit           = {}
+  def save(filename: String): Unit                    = {}
+  def load(filename: String): Unit                    = {}
   override def load(data: List[String]): List[String] = data
+  override def load_version_iterator(data_iter: scala.io.BufferedSource): Unit = {
+    /* do nothing */
+  }
 
 }
 
@@ -74,8 +77,10 @@ case class UpSampling2D(sz: Int)(implicit input_shape: (Int, Int, Int) = (1, 0, 
   def reset(): Unit  = {}
   def update(): Unit = {}
 
-  def save(filename: String): Unit           = {}
-  def load(filename: String): Unit           = {}
+  def save(filename: String): Unit                    = {}
+  def load(filename: String): Unit                    = {}
   override def load(data: List[String]): List[String] = data
-
+  override def load_version_iterator(data_iter: scala.io.BufferedSource): Unit = {
+    /* do nothing */
+  }
 }
