@@ -7,12 +7,13 @@ import pll._
 case class Generator(distr: String = "He",
                      SD: Double = 0.01,
                      update_method: String = "Adam,0.5,0.999,1e-8",
-                     lr: Double = 2e-4)(implicit load_path: String = "") {
+                     lr: Double = 2e-4,
+                     input_dim: Int = 100)(implicit load_path: String = "") {
 
   val model = new batchNet()
 
   // [100]
-  model.add(new Affine(100, 1024, distr, SD, update_method, lr))
+  model.add(new Affine(input_dim, 1024, distr, SD, update_method, lr))
   model.add(new BNL(1024, 0))
   model.add(new ReLU())
   // [1024]
