@@ -88,7 +88,7 @@ object zGLO2 {
       val saveCondition: Boolean = (e == 0) || (e % (epoch / saveTime) == 0) || (e == epoch - 1)
       if (doSave && saveCondition) {
         // val filename = s"batch_font_GLO_ds${data_size}_epoch${e}of${epoch}_batch${batch}_pad${pad}_stride${stride}.txt"
-        val filename = s"batch_font_GLO_ds${data_size}_epoch${e}of${epoch}_batch${batch}.txt"
+        val filename = f"batch_font_GLO_ds${data_size}_epoch${e}%05dof${epoch}%05d_batch${batch}.txt"
 
         var ys = List[DenseVector[Int]]()
         for (z <- Z) {

@@ -15,6 +15,10 @@ class Tanh() extends Layer {
   def update() {}
   def reset() {}
   def save(fn: String) {}
+  override def save_(pw: java.io.PrintWriter): java.io.PrintWriter = {
+    /* do nothing */
+    pw
+  }
   def load(fn: String) {}
   override def load(data: List[String]) = {
     data

@@ -78,6 +78,10 @@ case class UpSampling2D(sz: Int)(implicit input_shape: (Int, Int, Int) = (1, 0, 
   def update(): Unit = {}
 
   def save(filename: String): Unit                    = {}
+  override def save_(pw: java.io.PrintWriter): java.io.PrintWriter = {
+    /* do nothing */
+    pw
+  }
   def load(filename: String): Unit                    = {}
   override def load(data: List[String]): List[String] = data
   override def load_version_iterator(data_iter: scala.io.BufferedSource): Unit = {

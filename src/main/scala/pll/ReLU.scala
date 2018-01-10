@@ -27,12 +27,20 @@ case class ReLU() extends Layer {
   def reset() {
     x1 = Nil
   }
-  def save(fn: String) {}
-  def load(fn: String) {}
+
+  def save(fn: String) {
+    /* do nothing */
+  }
+  override def save_(pw: java.io.PrintWriter): java.io.PrintWriter = {
+    /* do nothing */
+    pw
+  }
+  def load(fn: String) {
+    /* do nothing */
+  }
   override def load(data: List[String]) = {
     data
   }
-
   override def load_version_iterator(data_iter: scala.io.BufferedSource): Unit = {
     /* do nothing */
   }

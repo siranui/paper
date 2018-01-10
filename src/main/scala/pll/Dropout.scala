@@ -1,6 +1,7 @@
 package pll
 import breeze.linalg._
 
+// dr = (0にする確率)
 class Dropout(var dr: Double) extends Layer {
 
   var masks: List[DenseVector[Double]] = Nil

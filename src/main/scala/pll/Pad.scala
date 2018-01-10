@@ -34,6 +34,11 @@ case class Pad(channel: Int, width: Int, ud: String = "down") extends Layer {
 
   def save(filename: String) {}
 
+  override def save_(pw: java.io.PrintWriter): java.io.PrintWriter = {
+    /* do nothing */
+    pw
+  }
+
   def load(filename: String) {}
 
   override def load(data: List[String]): List[String] = {
