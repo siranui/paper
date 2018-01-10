@@ -25,16 +25,15 @@ object zGLO2 {
     }
 
     val train_d: Array[DenseVector[Double]] = dataSources match {
-      case Nil  =>
+      case Nil =>
         utils.read(dataSource, data_size)
-      case _    =>
-        val tmp = dataSources.map(d => utils.read(d)).reduce(_++_)
+      case _ =>
+        val tmp = dataSources.map(d => utils.read(d)).reduce(_ ++ _)
         data_size = tmp.size
         tmp
     }
 
     log.debug(s"data size is $data_size")
-
 
     var Z = Array.ofDim[DenseVector[Double]](data_size)
     Z = Z.map { _ =>

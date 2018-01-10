@@ -56,14 +56,14 @@ object param {
         case "--data-source" =>
           dataSource = args(i + 1)
           i += 2
-        case "--data-sources"              =>
+        case "--data-sources" =>
           i += 1
-          while(i < args.size && args(i).head != '-'){
+          while (i < args.size && args(i).head != '-') {
             dataSources = args(i) :: dataSources
             i += 1
           }
           dataSources = dataSources.reverse
-        case "--do-shuffle"                =>
+        case "--do-shuffle" =>
           doShuffle = args(i + 1).toBoolean
           i += 2
         case "--do-save" =>
@@ -93,10 +93,10 @@ object param {
         case "--learning-rate" =>
           lr = args(i + 1).toDouble
           i += 2
-        case "-h" | "--help"               =>
+        case "-h" | "--help" =>
           printHelp()
           sys.exit()
-        case _                             =>
+        case _ =>
           println(s"unknown option:${args(i)}")
           i += 1
       }
@@ -104,8 +104,8 @@ object param {
     if (epoch < saveTime) saveTime = epoch
   }
 
-  val red = "\u001b[31m"
-  val reset = "\u001b[0m"
+  val red        = "\u001b[31m"
+  val reset      = "\u001b[0m"
   val depricated = s"${red}@depricated${reset}"
 
   def printHelp() {
@@ -159,9 +159,7 @@ object param {
         LOAD_PARAM_G    = $LOAD_PARAM_G
         LOAD_Z          = $LOAD_Z
       
-    """
-    )
+    """)
   }
-
 
 }
