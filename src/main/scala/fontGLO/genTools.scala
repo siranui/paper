@@ -5,17 +5,17 @@ import pll._
 import pll.typeAlias._
 
 object genTools {
-  var weightPath: String = null
-  var zPath: String = null
-  var dataSources = List[String]()
-  var morpA       = 0
-  var morpB       = 1
-  var savePath    = s"${sys.env("HOME")}/morp.txt"
-  var behavior    = ""
+  var weightPath: String  = null
+  var zPath: String       = null
+  var dataSources         = List[String]()
+  var morpA               = 0
+  var morpB               = 1
+  var savePath            = s"${sys.env("HOME")}/morp.txt"
+  var behavior            = ""
   var newFontPath: String = null
-  var split_ratio = (0.5:T)
-  var epoch       = 100
-  var doSave      = false
+  var split_ratio         = (0.5: T)
+  var epoch               = 100
+  var doSave              = false
 
   def Initialize(weightPath: String, zPath: String) = {
     val generator = fontDCGAN.Generator()(weightPath)
@@ -64,14 +64,14 @@ object genTools {
 
     net.add(new i2cConv(32, 5, 8, 1, 3, "He", 1d, "Adam", 0d))
     net.add(new LeakyReLU())
-    net.add(new Dropout(0.3) )
-    net.add(new Pooling(2,2)(8,10,10) )
+    net.add(new Dropout(0.3))
+    net.add(new Pooling(2, 2)(8, 10, 10))
     net.add(new i2cConv(5, 3, 32, 8, 1, "He", 1d, "Adam", 0d))
     net.add(new LeakyReLU())
-    net.add(new Dropout(0.3) )
-    net.add(new Affine(3*3*32, 100, "He", 1d, "Adam", 0d))
+    net.add(new Dropout(0.3))
+    net.add(new Affine(3 * 3 * 32, 100, "He", 1d, "Adam", 0d))
     net.add(new LeakyReLU())
-    net.add(new Dropout(0.3) )
+    net.add(new Dropout(0.3))
     net.add(new Affine(100, 100, "He", 1d, "Adam", 0d))
     net.add(new Tanh())
 
@@ -113,7 +113,9 @@ object genTools {
     }
   }
 
-  def createNewFeatureVectorAndModel(inputs: Seq[DV], split_ratio: T = (0.5:T), epoch: Int = 100) = {
+  def createNewFeatureVectorAndModel(inputs: Seq[DV],
+                                     split_ratio: T = (0.5: T),
+                                     epoch: Int = 100) = {
     val font_data: Array[DV] = dataSources match {
       case Nil =>
         log.error("data is nothing. please setting '--data-sources' option.")
@@ -123,8 +125,9 @@ object genTools {
     }
 
     val font_feature: Array[DV] = Option(zPath) match {
-      case Some(z) =>  pll.utils.read(z, divV = 1)
-      case None    => log.error(s"'--z-path' option does not set.")
+      case Some(z) => pll.utils.read(z, divV = 1)
+      case None =>
+        log.error(s"'--z-path' option does not set.")
         sys.exit(3)
     }
 
@@ -133,13 +136,15 @@ object genTools {
     val tmp = utils.rand.shuffle(dataset.toList)
 
     val train_set = tmp.take((tmp.size * split_ratio).toInt)
-    val test_set = tmp.drop((tmp.size * split_ratio).toInt)
+    val test_set  = tmp.drop((tmp.size * split_ratio).toInt)
 
-    val model = trainFeatureModel(train_set.map(_._1), train_set.map(_._2))(test_set.map(_._1), test_set.map(_._2))(epoch)
+    val model = trainFeatureModel(train_set.map(_._1), train_set.map(_._2))(
+      test_set.map(_._1),
+      test_set.map(_._2))(epoch)
 
     val new_feature = createNewFeatureVector(inputs)(model)
 
-    if(doSave){
+    if (doSave) {
       pll.utils.write(s"${sys.env("HOME")}/new_feature.txt", new_feature)
       model.save_one_file(s"${sys.env("HOME")}/feature_model.weight")
     }
@@ -166,7 +171,7 @@ object genTools {
           newFontPath = args(i + 1)
           i += 2
         case "--split-ratio" =>
-          split_ratio = (args(i + 1).toDouble:T)
+          split_ratio = (args(i + 1).toDouble: T)
           i += 2
         case "--epoch" =>
           epoch = args(i + 1).toInt
@@ -201,14 +206,15 @@ object genTools {
       case "feature" =>
         val inputs = Option(newFontPath) match {
           case Some(f) => pll.utils.read(f)
-          case None    =>
+          case None =>
             pll.log.error("Set '--new-font-path' option.")
             sys.exit(2)
         }
 
         createNewFeatureVectorAndModel(inputs, split_ratio, epoch)
       case _ =>
-        log.error(s"'${behavior}' does not exist in the '--behavior' option. we assume 'morphing' or 'feature'.")
+        log.error(
+          s"'${behavior}' does not exist in the '--behavior' option. we assume 'morphing' or 'feature'.")
         sys.exit(1)
     }
 

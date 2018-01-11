@@ -77,7 +77,7 @@ case class UpSampling2D(sz: Int)(implicit input_shape: (Int, Int, Int) = (1, 0, 
   def reset(): Unit  = {}
   def update(): Unit = {}
 
-  def save(filename: String): Unit                    = {}
+  def save(filename: String): Unit = {}
   override def save_(pw: java.io.PrintWriter): java.io.PrintWriter = {
     /* do nothing */
     pw
