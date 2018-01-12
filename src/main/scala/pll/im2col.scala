@@ -7,23 +7,47 @@ object Im2Col {
   type DV = DenseVector[T]
   type DM = DenseMatrix[T]
 
+  // def im2col(x: Array[DV], fil_h: Int, fil_w: Int, ch: Int = 1, stride: Int = 1) = {
+  //   val im: Array[Array[DV]]     = x.map(b => utils.divideIntoN(b, ch))
+  //   val in_w                     = math.sqrt(im(0)(0).size).toInt
+  //   val images: Array[Array[DM]] = im.map(_.map(i => reshape(i, in_w, in_w).t))
+
+  //   val out_w = utils.out_width(in_w, fil_w, stride)
+
+  //   val col =
+  //     (for (image <- images) yield {
+  //       (for (image_ch <- image) yield {
+  //         (for (i <- 0 until out_w; j <- 0 until out_w) yield {
+  //           val m =
+  //             image_ch(i * stride until i * stride + fil_h, j * stride until j * stride + fil_w).t
+  //           m.reshape(fil_h * fil_w, 1)
+  //         }).reduce(DenseMatrix.horzcat(_, _))
+  //       }).reduce(DenseMatrix.vertcat(_, _))
+  //     }).reduce(DenseMatrix.horzcat(_, _))
+
+  //   col
+  // }
+
   def im2col(x: Array[DV], fil_h: Int, fil_w: Int, ch: Int = 1, stride: Int = 1) = {
     val im: Array[Array[DV]]     = x.map(b => utils.divideIntoN(b, ch))
     val in_w                     = math.sqrt(im(0)(0).size).toInt
     val images: Array[Array[DM]] = im.map(_.map(i => reshape(i, in_w, in_w).t))
+    // images[batch, ch, mat(row, col)]
 
     val out_w = utils.out_width(in_w, fil_w, stride)
 
-    val col =
-      (for (image <- images) yield {
-        (for (image_ch <- image) yield {
-          (for (i <- 0 until out_w; j <- 0 until out_w) yield {
-            val m =
-              image_ch(i * stride until i * stride + fil_h, j * stride until j * stride + fil_w).t
-            m.reshape(fil_h * fil_w, 1)
-          }).reduce(DenseMatrix.horzcat(_, _))
-        }).reduce(DenseMatrix.vertcat(_, _))
-      }).reduce(DenseMatrix.horzcat(_, _))
+    var col = DenseMatrix.zeros[T](ch*fil_h*fil_w, out_w*out_w*images.size)
+
+    for (batch <- 0 until images.size) yield {
+      for (ch <- 0 until images(batch).size) yield {
+        for (i <- 0 until out_w; j <- 0 until out_w) yield {
+          val m =
+            images(batch)(ch)(i * stride until i * stride + fil_h, j * stride until j * stride + fil_w).t
+          val reshape_m = m.reshape(fil_h * fil_w, 1).toDenseVector
+          col(ch*reshape_m.size until (ch+1)*reshape_m.size, batch * out_w * out_w + i * out_w + j) += reshape_m
+        }
+      }
+    }
 
     col
   }
