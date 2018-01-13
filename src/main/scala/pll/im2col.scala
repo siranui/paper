@@ -36,15 +36,19 @@ object Im2Col {
 
     val out_w = utils.out_width(in_w, fil_w, stride)
 
-    var col = DenseMatrix.zeros[T](ch*fil_h*fil_w, out_w*out_w*images.size)
+    var col = DenseMatrix.zeros[T](ch * fil_h * fil_w, out_w * out_w * images.size)
 
     for (batch <- 0 until images.size) yield {
       for (ch <- 0 until images(batch).size) yield {
         for (i <- 0 until out_w; j <- 0 until out_w) yield {
           val m =
-            images(batch)(ch)(i * stride until i * stride + fil_h, j * stride until j * stride + fil_w).t
+            images(batch)(ch)(
+              i * stride until i * stride + fil_h,
+              j * stride until j * stride + fil_w).t
           val reshape_m = m.reshape(fil_h * fil_w, 1).toDenseVector
-          col(ch*reshape_m.size until (ch+1)*reshape_m.size, batch * out_w * out_w + i * out_w + j) += reshape_m
+          col(
+            ch * reshape_m.size until (ch + 1) * reshape_m.size,
+            batch * out_w * out_w + i * out_w + j) += reshape_m
         }
       }
     }
