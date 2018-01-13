@@ -1,11 +1,10 @@
-package pll
+package pll.float
 
 import breeze.linalg._
+import typeAlias._
+import CastImplicits._
 
 object Im2Col {
-  type T  = Double
-  type DV = DenseVector[T]
-  type DM = DenseMatrix[T]
 
   // def im2col(x: Array[DV], fil_h: Int, fil_w: Int, ch: Int = 1, stride: Int = 1) = {
   //   val im: Array[Array[DV]]     = x.map(b => utils.divideIntoN(b, ch))
@@ -72,7 +71,7 @@ object Im2Col {
     val out_w    = utils.out_width(in_w, fil_w, stride)
     val fil_size = fil_h * fil_w
 
-    val im = Array.fill(batch, ch)(DenseMatrix.zeros[Double](in_h, in_w))
+    val im = Array.fill(batch, ch)(DenseMatrix.zeros[T](in_h, in_w))
     for {
       b  <- 0 until batch
       c  <- 0 until ch
@@ -112,17 +111,17 @@ case class i2cConv(input_width: Int,
                    channel: Int = 1,
                    stride: Int = 1,
                    distr: String = "Gaussian",
-                   SD: Double = 0.1,
+                   SD: T = (0.1: T),
                    update_method: String = "SGD",
-                   lr: Double = 0.01)
+                   lr: T = (0.01: T))
     extends Layer {
 
   import Im2Col._
 
-  type DVD  = DenseVector[Double]
-  type DMD  = DenseMatrix[Double]
-  type ADVD = Array[DVD]
-  type ADMD = Array[DMD]
+  type DV  = DenseVector[T]
+  type DM  = DenseMatrix[T]
+  type ADV = Array[DV]
+  type ADM = Array[DM]
 
   assert(stride >= 1, "stride must 1 or over.")
 
@@ -131,21 +130,21 @@ case class i2cConv(input_width: Int,
 
   val out_width: Int = utils.out_width(input_width, filter_width, stride)
 
-  var col_X: Option[DMD] = None //input that change for matrix
-  var col_W: Option[DMD] = None //filter that change for matrix
+  var col_X: Option[DM] = None //input that change for matrix
+  var col_W: Option[DM] = None //filter that change for matrix
 
   // filter
-  var F: Array[ADVD] = filter_init(filter_set, channel, filter_width * filter_width)
+  var F: Array[ADV] = filter_init(filter_set, channel, filter_width * filter_width)
   // bias
-  var B: DVD = DenseVector.zeros[Double](filter_set)
+  var B: DV = DenseVector.zeros[T](filter_set)
 
-  var dW: DMD = DenseMatrix.zeros[Double](filter_set, filter_width * filter_width * channel)
-  var dB: DVD = DenseVector.zeros[Double](filter_set)
+  var dW: DM = DenseMatrix.zeros[T](filter_set, filter_width * filter_width * channel)
+  var dB: DV = DenseVector.zeros[T](filter_set)
 
   opt_filter.register(Array(fil2mat(F)))
   opt_bias.register(Array(B))
 
-  def forward(x: DVD): DVD = {
+  def forward(x: DV): DV = {
     val col   = im2col(Array(x), filter_width, filter_width, channel, stride)
     val col_W = fil2mat(F)
 
@@ -157,7 +156,7 @@ case class i2cConv(input_width: Int,
     Wx_plus_B.t.toDenseVector
   }
 
-  override def forwards(x: ADVD): ADVD = {
+  override def forwards(x: ADV): ADV = {
     val col   = im2col(x, filter_width, filter_width, channel, stride)
     val col_W = fil2mat(F)
 
@@ -170,7 +169,7 @@ case class i2cConv(input_width: Int,
     // println(s"debug: outMat(${outMat.rows}, ${outMat.cols})")
     // println(s"debug: Wx_plus_B(${Wx_plus_B.rows}, ${Wx_plus_B.cols})")
 
-    val batches: Array[DMD] = (for (i <- 0 until x.size) yield {
+    val batches: Array[DM] = (for (i <- 0 until x.size) yield {
       Wx_plus_B(
         ::,
         i * out_width * out_width until i * out_width * out_width + out_width * out_width)
@@ -181,10 +180,10 @@ case class i2cConv(input_width: Int,
     batches.map(_.t.toDenseVector)
   }
 
-  def backward(d: DVD): DVD = {
+  def backward(d: DV): DV = {
 
-    val dmap: ADVD = utils.divideIntoN(d, N = filter_set)
-    val dMat: DMD  = dmap.map(_.toDenseMatrix).reduce(DenseMatrix.vertcat(_, _))
+    val dmap: ADV = utils.divideIntoN(d, N = filter_set)
+    val dMat: DM  = dmap.map(_.toDenseMatrix).reduce(DenseMatrix.vertcat(_, _))
 
     dB += sum(dMat, Axis._1)
 
@@ -201,10 +200,10 @@ case class i2cConv(input_width: Int,
     dxVec
   }
 
-  override def backwards(d: ADVD): ADVD = {
+  override def backwards(d: ADV): ADV = {
 
-    val dmap: Array[ADVD] = d.map(b => utils.divideIntoN(b, N = filter_set))
-    val dMat: DMD = dmap
+    val dmap: Array[ADV] = d.map(b => utils.divideIntoN(b, N = filter_set))
+    val dMat: DM = dmap
       .map(_.map(_.toDenseMatrix).reduce(DenseMatrix.vertcat(_, _)))
       .reduce(DenseMatrix.horzcat(_, _))
 
@@ -213,16 +212,16 @@ case class i2cConv(input_width: Int,
     val col_X = this.col_X.get
     dW += dMat * col_X.t
 
-    val col_W           = this.col_W.get
-    val x_shape         = Shape(d.size, channel, input_width, input_width)
-    val dxMat           = col_W.t * dMat
-    val dx: Array[ADMD] = col2im(dxMat, x_shape, filter_width, filter_width, stride)
-    val dxArrVec: ADVD  = dx.map(c => c.map(_.t.toDenseVector).reduce(DenseVector.vertcat(_, _))) //.reduce(DenseVector.vertcat(_,_))
+    val col_W          = this.col_W.get
+    val x_shape        = Shape(d.size, channel, input_width, input_width)
+    val dxMat          = col_W.t * dMat
+    val dx: Array[ADM] = col2im(dxMat, x_shape, filter_width, filter_width, stride)
+    val dxArrVec: ADV  = dx.map(c => c.map(_.t.toDenseVector).reduce(DenseVector.vertcat(_, _))) //.reduce(DenseVector.vertcat(_,_))
     dxArrVec
   }
 
   def update(): Unit = {
-    val wf: Array[DMD] = opt_filter.update(Array(col_W.get), Array(dW))
+    val wf: Array[DM] = opt_filter.update(Array(col_W.get), Array(dW))
 
     // println(s"debug: F(${F.size}, ${F(0).size}, ${F(0)(0).size})")
     // println(s"debug: wf(${wf.size}, ${wf(0).rows}, ${wf(0).cols})")
@@ -234,7 +233,7 @@ case class i2cConv(input_width: Int,
       F(i)(j) -= wf(0)(i, j * F(i)(j).length until j * F(i)(j).length + F(i)(j).length).t
     }
 
-    val wb: Array[DVD] = opt_bias.update(Array(B), Array(dB))
+    val wb: Array[DV] = opt_bias.update(Array(B), Array(dB))
     B -= wb(0)
 
     reset()
@@ -243,8 +242,8 @@ case class i2cConv(input_width: Int,
   def reset(): Unit = {
     col_X = None
     col_W = None
-    dW = DenseMatrix.zeros[Double](filter_set, filter_width * filter_width * channel)
-    dB = DenseVector.zeros[Double](dB.length)
+    dW = DenseMatrix.zeros[T](filter_set, filter_width * filter_width * channel)
+    dB = DenseVector.zeros[T](dB.length)
   }
 
   def save(fn: String): Unit = {
@@ -303,8 +302,8 @@ case class i2cConv(input_width: Int,
   }
 
   override def load(data: List[String]): List[String] = {
-    val flst: Array[Double] = data(0).split(",").map(_.toDouble)
-    val blst: Array[Double] = data(1).split(",").map(_.toDouble)
+    val flst: Array[T] = data(0).split(",").map(i => (i.toDouble: T))
+    val blst: Array[T] = data(1).split(",").map(i => (i.toDouble: T))
 
     pll.log.debug(s"i2cConv-load:")
     pll.log.debug(s"\tF: ${F.map(_.map(_.toArray)).flatten.flatten.size}, loaded: ${flst.size}")
@@ -354,8 +353,8 @@ case class i2cConv(input_width: Int,
 
   // helper
 
-  def filter_init(M: Int, K: Int, H: Int): Array[ADVD] = {
-    val filters: Array[ADVD] = Array.ofDim[DVD](M, K)
+  def filter_init(M: Int, K: Int, H: Int): Array[ADV] = {
+    val filters: Array[ADV] = Array.ofDim[DV](M, K)
     for {
       i <- filters.indices
       j <- filters(i).indices
@@ -371,9 +370,9 @@ case class i2cConv(input_width: Int,
     filters
   }
 
-  def copy_F(): Array[ADVD] = F.map(_.map(_.copy))
+  def copy_F(): Array[ADV] = F.map(_.map(_.copy))
 
-  def copy_B(): DVD = B.copy
+  def copy_B(): DV = B.copy
 
   override def duplicate(): i2cConv = {
     val dup =
@@ -385,6 +384,7 @@ case class i2cConv(input_width: Int,
 
 }
 
+/*
 // test
 object i2cConvTest {
   def main(args: Array[String]) {
@@ -399,9 +399,9 @@ object i2cConvTest {
     val stride                = 2
     val input_width           = 10
     val distr: String         = "Xavier"
-    val SD: Double            = 0d
+    val SD: T            = 0d
     val update_method: String = "AdaGrad"
-    val lr: Double            = 0.01
+    val lr: T            = 0.01
     val conv                  = i2cConv(input_width, fH, fS, ch, stride, distr, SD, update_method, lr)
     val img                   = DenseVector.range(0, ch * input_width * input_width).map(_.toDouble)
     val conv1                 = conv.forward(img)
@@ -429,3 +429,4 @@ object i2cConvTest {
     conv.save("tmp2.csv")
   }
 }
+ */

@@ -150,15 +150,15 @@ object param {
         doSave          = $doSave
         display         = $display
         saveTime        = $saveTime
-      
+
         distr           = $distr
         SD              = $SD
         update_method   = $update_method
         lr              = $lr
-      
+
         LOAD_PARAM_G    = $LOAD_PARAM_G
         LOAD_Z          = $LOAD_Z
-      
+
     """)
   }
 

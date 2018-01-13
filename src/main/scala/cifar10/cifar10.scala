@@ -1,33 +1,30 @@
 package cifar10
 
 import breeze.linalg._
-import pll._
+// import pll._
+import pll.float._
+import typeAlias._
+import CastImplicits._
 
 case class cifar10_net() {
   val model = new batchNet()
-  model.add(new i2cConv(32, 5, 10, 3, 1, "He", 0.01, "Adam", 0d))
+  model.add(new i2cConv(32, 5, 10, 3, 1, "He", 0.01, "Adam", 0))
   model.add(new Pooling(2, 2)(10, 28, 28))
   model.add(new LeakyReLU())
   // [10,14,14]
-  model.add(new i2cConv(14, 5, 10, 10, 1, "He", 0.01, "Adam", 0d))
+  model.add(new i2cConv(14, 5, 10, 10, 1, "He", 0.01, "Adam", 0))
   model.add(new Pooling(2, 2)(10, 10, 10))
   model.add(new LeakyReLU())
   // [10,5,5]
-  model.add(new i2cConv(5, 3, 10, 10, 1, "He", 0.01, "Adam", 0d))
+  model.add(new i2cConv(5, 3, 10, 10, 1, "He", 0.01, "Adam", 0))
   model.add(new LeakyReLU())
-  model.add(new Affine(3 * 3 * 10, 100, "He", 0.01, "Adam", 0d))
+  model.add(new Affine(3 * 3 * 10, 100, "He", 0.01, "Adam", 0))
   model.add(new ReLU())
-  model.add(new Affine(100, 10, "Xavier", 0.01, "Adam", 0d))
+  model.add(new Affine(100, 10, "Xavier", 0.01, "Adam", 0))
   model.add(new SoftMax())
 }
 
 object cifar10 {
-  import pll.typeAlias._
-  // // types
-  // type T       = Double
-  // type DV      = DenseVector[T]
-  // type DM      = DenseMatrix[T]
-  // type DATASET = Array[(DV, DV)]
 
   // params
   var train_size = 50000
@@ -49,18 +46,18 @@ object cifar10 {
   def main(args: Array[String]) {
     args_process(args)
 
-    println("--- data loading ---")
+    log.info("--- data loading ---")
     val Seq((train_data, train_tag), (test_data, test_tag)) = data_load()
 
     val train_set: DATASET = train_data zip train_tag
     val test_set: DATASET  = test_data zip test_tag
 
-    println("--- network initialize ---")
+    log.info("--- network initialize ---")
     val net = cifar10_net()
 
-    println("--- training start ---")
+    log.info("--- training start ---")
 
-    println("epoch\ttrain_err\ttrain_acc\ttest_err\ttest_acc")
+    log.info("epoch\ttrain_err\ttrain_acc\ttest_err\ttest_acc")
     for (epoch <- 0 until NUM_EPOCH) {
       // train
       val train_batch = rand.shuffle(train_set.iterator).toArray.take(BATCH_SIZE)
@@ -91,6 +88,8 @@ object cifar10 {
       println(
         s"$epoch\t$E\t${100d * acc.count(_ == 1) / acc.size}%\t$t_E\t${100d * t_acc.count(_ == 1) / t_acc.size}%")
     }
+
+    log.info("--- training start ---")
 
   }
 
@@ -132,7 +131,7 @@ object cifar10 {
     }
   }
 
-  def reshape(src: Array[Array[Double]]) = {
+  def reshape(src: Array[Array[T]]) = {
     val r = src.map { c =>
       (0 until c.size by 3).map(k => c(k)).toArray
     }
@@ -142,25 +141,25 @@ object cifar10 {
     val b = src.map { c =>
       (2 until c.size by 3).map(k => c(k)).toArray
     }
-    val dst: Array[DenseVector[Double]] = (for (idx <- 0 until r.size) yield {
+    val dst: Array[DenseVector[T]] = (for (idx <- 0 until r.size) yield {
       DenseVector(r(idx) ++ g(idx) ++ b(idx))
     }).toArray
     dst
   }
 
-  def data_load(): Seq[(Array[DenseVector[Double]], Array[DenseVector[Double]])] = {
+  def data_load(): Seq[(Array[DenseVector[T]], Array[DenseVector[T]])] = {
 
-    val tr_d: Array[Array[Double]] = io.Source
+    val tr_d: Array[Array[T]] = io.Source
       .fromFile(TRAIN_DATA_PATH)
       .getLines
       .take(train_size)
-      .map(_.split(",").map(_.toDouble))
+      .map(_.split(",").map(i => (i.toDouble: T)))
       .toArray
-    val te_d: Array[Array[Double]] = io.Source
+    val te_d: Array[Array[T]] = io.Source
       .fromFile(TEST_DATA_PATH)
       .getLines
       .take(test_size)
-      .map(_.split(",").map(_.toDouble))
+      .map(_.split(",").map(i => (i.toDouble: T)))
       .toArray
     val tr_t: Array[Int] = io.Source
       .fromFile(TRAIN_TAG_PATH)
@@ -177,24 +176,24 @@ object cifar10 {
       .flatten
       .take(test_size)
 
-    val train_data: Array[DenseVector[Double]] = do_reshape match {
+    val train_data: Array[DenseVector[T]] = do_reshape match {
       case true => reshape(tr_d)
       case false =>
         tr_d.map { ad =>
           DenseVector(ad)
         }
     }
-    val test_data: Array[DenseVector[Double]] = do_reshape match {
+    val test_data: Array[DenseVector[T]] = do_reshape match {
       case true => reshape(te_d)
       case false =>
         te_d.map { ad =>
           DenseVector(ad)
         }
     }
-    val train_tag: Array[DenseVector[Double]] = tr_t.map { t =>
+    val train_tag: Array[DenseVector[T]] = tr_t.map { t =>
       utils.oneHot(t)
     }
-    val test_tag: Array[DenseVector[Double]] = te_t.map { t =>
+    val test_tag: Array[DenseVector[T]] = te_t.map { t =>
       utils.oneHot(t)
     }
 

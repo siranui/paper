@@ -1,6 +1,7 @@
-package fontDCGAN
+package fontGLO
 
 import pll._
+// import pll.float._
 import typeAlias._
 import CastImplicits._
 

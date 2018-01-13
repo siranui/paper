@@ -1,6 +1,9 @@
 package fontGLO
 
 import pll._
+// import pll.float._
+import typeAlias._
+import CastImplicits._
 import breeze.linalg._
 import scala.language.postfixOps
 
@@ -19,12 +22,12 @@ object zGLO2 {
     val weights_path = s"${savePath}/weights/${start_time}"
 
     if (doSave) {
-      pll.log.info("make results and weights directory")
+      log.info("make results and weights directory")
       val mkdir = scala.sys.process.Process(s"mkdir -p ${res_path} ${weights_path}").run
       mkdir.exitValue()
     }
 
-    val train_d: Array[DenseVector[Double]] = dataSources match {
+    val train_d: Array[DenseVector[T]] = dataSources match {
       case Nil =>
         utils.read(dataSource, data_size)
       case _ =>
@@ -35,23 +38,23 @@ object zGLO2 {
 
     log.debug(s"data size is $data_size")
 
-    var Z = Array.ofDim[DenseVector[Double]](data_size)
+    var Z = Array.ofDim[DenseVector[T]](data_size)
     Z = Z.map { _ =>
-      DenseVector.fill(zdim) {
+      DenseVector.fill[T](zdim) {
         rand.nextGaussian / math.sqrt(data_size)
       }
     }
     if (LOAD_Z != "") Z = utils.read(LOAD_Z)
 
-    val g = fontDCGAN.Generator(distr, SD, update_method, lr, zdim)(LOAD_PARAM_G)
+    val g = Generator(distr, SD, update_method, lr, zdim)(LOAD_PARAM_G)
     g.model.layers.foreach(println)
 
-    val d_alpha = 0.01
+    val d_alpha: T = 0.01
 
-    pll.log.info("********** training start **********")
+    log.info("********** training start **********")
     // training
     for (e <- 0 until epoch) {
-      var E = 0d
+      var E: T = 0
       var unusedIdx =
         if (doShuffle) rand.shuffle(List.range(0, data_size))
         else List.range(0, data_size)
@@ -64,7 +67,7 @@ object zGLO2 {
         val ts = batchMask.map(idx => train_d(idx)).toArray
         val ys = g.model.predict(xs)
 
-        var d = Array[DenseVector[Double]]()
+        var d = Array[DenseVector[T]]()
         Loss match {
           case "Laplacian" | "laplacian" | "Lap" | "lap" =>
             E += err.calc_Lap1_loss(ys, ts)
@@ -100,21 +103,21 @@ object zGLO2 {
 
         // save generated image
         utils.write(s"${res_path}/${filename}", ys.reverse)
-        pll.log.info("********** save generated image **********")
+        log.info("********** save generated image **********")
 
         // save weights
         g.model.save_one_file(s"${weights_path}/e${e}_Gen.weight")
-        pll.log.info("********** save weights **********")
+        log.info("********** save weights **********")
 
         // save learning Z
         utils.write(s"${weights_path}/e${e}_Z.txt", Z)
-        pll.log.info("********** save learning Z **********")
+        log.info("********** save learning Z **********")
       }
 
       // output Error
       println(s"$e, $E")
     }
-    pll.log.info("********** training finish **********")
+    log.info("********** training finish **********")
 
     println(args.toList)
   }
